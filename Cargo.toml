@@ -115,12 +115,9 @@ solana-big-mod-exp = { path = "../solana-sdk/big-mod-exp" }
 solana-blake3-hasher = { path = "../solana-sdk/blake3-hasher" }
 solana-bn254 = { path = "../solana-sdk/bn254" }
 solana-keccak-hasher = { path = "../solana-sdk/keccak-hasher" }
-solana-secp256k1-recover = { path = "../solana-sdk/secp256k1-recover" }
 solana-fee-structure = { path = "../solana-sdk/fee-structure" }
 solana-nonce-account = { path = "../solana-sdk/nonce-account" }
 solana-rent-debits = { path = "../solana-sdk/rent-debits" }
-solana-ed25519-program = { path = "../solana-sdk/ed25519-program" }
-solana-precompile-error = { path = "../solana-sdk/precompile-error" }
 solana-secp256k1-program = { path = "../solana-sdk/secp256k1-program" }
 solana-secp256r1-program = { path = "../solana-sdk/secp256r1-program" }
 solana-define-syscall = { path = "../solana-sdk/define-syscall" }

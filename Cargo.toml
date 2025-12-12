@@ -15,15 +15,15 @@ opt-level = 3
 [workspace]
 resolver = "2"
 members = [
-  "clients/cli",
+  # "clients/cli",
   #"clients/rust", omitted from workspace until a real client is generated
-  "clients/rust-legacy",
-  "confidential/ciphertext-arithmetic",
-  "confidential/elgamal-registry",
-  "confidential/elgamal-registry-interface",
-  "confidential/proof-extraction",
-  "confidential/proof-generation",
-  "confidential/proof-tests",
+  #"clients/rust-legacy",
+  #"confidential/ciphertext-arithmetic",
+  #"confidential/elgamal-registry",
+  #"confidential/elgamal-registry-interface",
+  #"confidential/proof-extraction",
+  #"confidential/proof-generation",
+  #"confidential/proof-tests",
   "interface",
   "program",
 ]

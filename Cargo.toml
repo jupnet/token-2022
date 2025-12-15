@@ -59,6 +59,9 @@ pre-release-commit-message = "Publish {{crate_name}} v{{version}}"
 tag-message = "Publish {{crate_name}} v{{version}}"
 consolidate-commits = false
 
+[workspace.dependencies]
+ethnum = "1.5.2"
+
 [patch.crates-io]
 spl-token-confidential-transfer-proof-extraction = { path = "confidential/proof-extraction" }
 spl-token-confidential-transfer-proof-generation = { path = "confidential/proof-generation" }

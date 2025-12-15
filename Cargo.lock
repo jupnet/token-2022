@@ -4056,9 +4056,9 @@ checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
 
 [[package]]
 name = "reqwest"
-version = "0.12.25"
+version = "0.12.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6eff9328d40131d43bd911d42d79eb6a47312002a4daefc9e37f17e74a7701a"
+checksum = "3b4c14b2d9afca6a60277086b0cc6a6ae0b568f6f7916c943a8cdc79f8be240f"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -8195,21 +8195,6 @@ dependencies = [
 [[package]]
 name = "spl-program-error"
 version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c4f6cf26cb6768110bf024bc7224326c720d711f7ad25d16f40f6cee40edb2d"
-dependencies = [
- "num-derive",
- "num-traits",
- "num_enum",
- "solana-msg 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "solana-program-error 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "spl-program-error-derive 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "thiserror 2.0.17",
-]
-
-[[package]]
-name = "spl-program-error"
-version = "0.8.0"
 source = "git+https://github.com/jupnet/libraries?branch=jupnet#1f8a932a1c0de9b27d3a1a101c57962fe07af6b6"
 dependencies = [
  "num-derive",
@@ -8217,20 +8202,8 @@ dependencies = [
  "num_enum",
  "solana-msg 3.0.0 (git+https://github.com/jupnet/jupnet-sdk)",
  "solana-program-error 3.0.0 (git+https://github.com/jupnet/jupnet-sdk)",
- "spl-program-error-derive 0.6.0 (git+https://github.com/jupnet/libraries?branch=jupnet)",
+ "spl-program-error-derive",
  "thiserror 2.0.17",
-]
-
-[[package]]
-name = "spl-program-error-derive"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ec8965aa4dc6c74701cbb48b9cad5af35b9a394514934949edbb357b78f840d"
-dependencies = [
- "proc-macro2",
- "quote",
- "sha2 0.10.9",
- "syn 2.0.111",
 ]
 
 [[package]]
@@ -8242,27 +8215,6 @@ dependencies = [
  "quote",
  "sha2 0.10.9",
  "syn 2.0.111",
-]
-
-[[package]]
-name = "spl-tlv-account-resolution"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6927f613c9d7ce20835d3cefb602137cab2518e383a047c0eaa58054a60644c8"
-dependencies = [
- "bytemuck",
- "num-derive",
- "num-traits",
- "num_enum",
- "solana-account-info 3.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "solana-instruction 3.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "solana-program-error 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "solana-pubkey 3.0.0",
- "spl-discriminator 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "spl-pod 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "spl-program-error 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "spl-type-length-value 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -8281,7 +8233,7 @@ dependencies = [
  "solana-pubkey 4.0.0 (git+https://github.com/jupnet/jupnet-sdk)",
  "spl-discriminator 0.5.1 (git+https://github.com/jupnet/libraries?branch=jupnet)",
  "spl-pod 0.7.1 (git+https://github.com/jupnet/libraries?branch=jupnet)",
- "spl-program-error 0.8.0 (git+https://github.com/jupnet/libraries?branch=jupnet)",
+ "spl-program-error",
  "spl-type-length-value 0.9.0 (git+https://github.com/jupnet/libraries?branch=jupnet)",
  "thiserror 2.0.17",
 ]
@@ -8293,6 +8245,7 @@ dependencies = [
  "arrayref",
  "base64 0.22.1",
  "bytemuck",
+ "ethnum",
  "lazy_static",
  "num-derive",
  "num-traits",
@@ -8329,7 +8282,7 @@ dependencies = [
  "spl-elgamal-registry-interface",
  "spl-memo-interface",
  "spl-pod 0.7.1 (git+https://github.com/jupnet/libraries?branch=jupnet)",
- "spl-tlv-account-resolution 0.11.1 (git+https://github.com/jupnet/libraries?branch=jupnet)",
+ "spl-tlv-account-resolution",
  "spl-token-2022-interface",
  "spl-token-confidential-transfer-ciphertext-arithmetic",
  "spl-token-confidential-transfer-proof-extraction",
@@ -8348,6 +8301,7 @@ dependencies = [
  "arrayref",
  "base64 0.22.1",
  "bytemuck",
+ "ethnum",
  "num-derive",
  "num-traits",
  "num_enum",
@@ -8530,26 +8484,26 @@ dependencies = [
 [[package]]
 name = "spl-transfer-hook-interface"
 version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c34b46b8f39bc64a9ab177a0ea8e9a58826db76f8d9d154a2400ee60baef7b1e"
+source = "git+https://github.com/jupnet/transfer-hook?branch=jupnet#d009e87d7bb3ceda2fe796fcc3523b859609ca0f"
 dependencies = [
  "arrayref",
  "bytemuck",
+ "ethnum",
  "num-derive",
  "num-traits",
- "solana-account-info 3.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "solana-cpi 3.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "solana-instruction 3.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "solana-msg 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "solana-program-error 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "solana-pubkey 3.0.0",
- "solana-sdk-ids 3.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "solana-system-interface 2.0.0",
- "spl-discriminator 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "spl-pod 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "spl-program-error 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "spl-tlv-account-resolution 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "spl-type-length-value 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "solana-account-info 3.1.0 (git+https://github.com/jupnet/jupnet-sdk)",
+ "solana-cpi 3.1.0 (git+https://github.com/jupnet/jupnet-sdk)",
+ "solana-instruction 3.1.0 (git+https://github.com/jupnet/jupnet-sdk)",
+ "solana-msg 3.0.0 (git+https://github.com/jupnet/jupnet-sdk)",
+ "solana-program-error 3.0.0 (git+https://github.com/jupnet/jupnet-sdk)",
+ "solana-pubkey 4.0.0 (git+https://github.com/jupnet/jupnet-sdk)",
+ "solana-sdk-ids 3.1.0 (git+https://github.com/jupnet/jupnet-sdk)",
+ "solana-system-interface 3.0.0",
+ "spl-discriminator 0.5.1 (git+https://github.com/jupnet/libraries?branch=jupnet)",
+ "spl-pod 0.7.1 (git+https://github.com/jupnet/libraries?branch=jupnet)",
+ "spl-program-error",
+ "spl-tlv-account-resolution",
+ "spl-type-length-value 0.9.0 (git+https://github.com/jupnet/libraries?branch=jupnet)",
  "thiserror 2.0.17",
 ]
 

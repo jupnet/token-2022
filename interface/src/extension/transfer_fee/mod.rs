@@ -175,7 +175,7 @@ impl Extension for TransferFeeConfig {
 
 /// Transfer fee extension data for accounts.
 #[repr(C)]
-#[cfg_attr(feature = "serde", derive(Serialize Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Pod, Zeroable)]
 pub struct TransferFeeAmount {

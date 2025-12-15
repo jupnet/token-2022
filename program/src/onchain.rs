@@ -56,9 +56,9 @@ fn transfer_instruction_and_account_infos<'a>(
     destination_info: AccountInfo<'a>,
     authority_info: AccountInfo<'a>,
     additional_accounts: &[AccountInfo<'a>],
-    amount: u64,
+    amount: U256,
     decimals: u8,
-    fee: Option<u64>,
+    fee: Option<U256>,
 ) -> Result<(Instruction, Vec<AccountInfo<'a>>), ProgramError> {
     let mut cpi_instruction = match fee {
         None => instruction::transfer_checked(
@@ -144,9 +144,9 @@ fn invoke_transfer_internal<'a>(
     destination_info: AccountInfo<'a>,
     authority_info: AccountInfo<'a>,
     additional_accounts: &[AccountInfo<'a>],
-    amount: u64,
+    amount: U256,
     decimals: u8,
-    fee: Option<u64>,
+    fee: Option<U256>,
     seeds: &[&[&[u8]]],
 ) -> ProgramResult {
     let (cpi_instruction, cpi_account_infos) = transfer_instruction_and_account_infos(
@@ -174,7 +174,7 @@ pub fn invoke_transfer_checked<'a>(
     destination_info: AccountInfo<'a>,
     authority_info: AccountInfo<'a>,
     additional_accounts: &[AccountInfo<'a>],
-    amount: u64,
+    amount: U256,
     decimals: u8,
     seeds: &[&[&[u8]]],
 ) -> ProgramResult {
@@ -203,9 +203,9 @@ pub fn invoke_transfer_checked_with_fee<'a>(
     destination_info: AccountInfo<'a>,
     authority_info: AccountInfo<'a>,
     additional_accounts: &[AccountInfo<'a>],
-    amount: u64,
+    amount: U256,
     decimals: u8,
-    fee: u64,
+    fee: U256,
     seeds: &[&[&[u8]]],
 ) -> ProgramResult {
     invoke_transfer_internal(

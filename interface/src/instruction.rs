@@ -16,6 +16,7 @@ use {
         extension::ExtensionType,
     },
     bytemuck::Pod,
+    ethnum::U256,
     solana_instruction::{AccountMeta, Instruction},
     solana_program_error::ProgramError,
     solana_program_option::COption,
@@ -34,8 +35,8 @@ pub const MIN_SIGNERS: usize = 1;
 pub const MAX_SIGNERS: usize = 11;
 /// Serialized length of a `u16`, for unpacking
 const U16_BYTES: usize = 2;
-/// Serialized length of a `u64`, for unpacking
-const U64_BYTES: usize = 8;
+/// Serialized length of a `u256`, for unpacking
+const U256_BYTES: usize = 32;
 
 /// Instructions supported by the token program.
 #[repr(C)]
@@ -145,7 +146,7 @@ pub enum TokenInstruction<'a> {
     )]
     Transfer {
         /// The amount of tokens to transfer.
-        amount: u64,
+        amount: U256,
     },
     /// Approves a delegate.  A delegate is given the authority over tokens on
     /// behalf of the source account's owner.
@@ -164,7 +165,7 @@ pub enum TokenInstruction<'a> {
     ///   3. ..`3+M` `[signer]` M signer accounts
     Approve {
         /// The amount of tokens the delegate is approved for.
-        amount: u64,
+        amount: U256,
     },
     // 5
     /// Revokes the delegate's authority.
@@ -216,7 +217,7 @@ pub enum TokenInstruction<'a> {
     ///   3. ..`3+M` `[signer]` M signer accounts.
     MintTo {
         /// The amount of new tokens to mint.
-        amount: u64,
+        amount: U256,
     },
     /// Burns tokens by removing them from an account.  `Burn` does not support
     /// accounts associated with the native mint, use `CloseAccount` instead.
@@ -235,7 +236,7 @@ pub enum TokenInstruction<'a> {
     ///   3. ..`3+M` `[signer]` M signer accounts.
     Burn {
         /// The amount of tokens to burn.
-        amount: u64,
+        amount: U256,
     },
     /// Close an account by transferring all its SOL to the destination account.
     /// Non-native accounts may only be closed if its token amount is zero.
@@ -333,7 +334,7 @@ pub enum TokenInstruction<'a> {
     ///   4. ..`4+M` `[signer]` M signer accounts.
     TransferChecked {
         /// The amount of tokens to transfer.
-        amount: u64,
+        amount: U256,
         /// Expected number of base 10 digits to the right of the decimal place.
         decimals: u8,
     },
@@ -360,7 +361,7 @@ pub enum TokenInstruction<'a> {
     ///   4. ..`4+M` `[signer]` M signer accounts
     ApproveChecked {
         /// The amount of tokens the delegate is approved for.
-        amount: u64,
+        amount: U256,
         /// Expected number of base 10 digits to the right of the decimal place.
         decimals: u8,
     },
@@ -385,7 +386,7 @@ pub enum TokenInstruction<'a> {
     ///   3. ..`3+M` `[signer]` M signer accounts.
     MintToChecked {
         /// The amount of new tokens to mint.
-        amount: u64,
+        amount: U256,
         /// Expected number of base 10 digits to the right of the decimal place.
         decimals: u8,
     },
@@ -412,7 +413,7 @@ pub enum TokenInstruction<'a> {
     ///   3. ..`3+M` `[signer]` M signer accounts.
     BurnChecked {
         /// The amount of tokens to burn.
-        amount: u64,
+        amount: U256,
         /// Expected number of base 10 digits to the right of the decimal place.
         decimals: u8,
     },
@@ -485,7 +486,7 @@ pub enum TokenInstruction<'a> {
         freeze_authority: COption<Pubkey>,
     },
     /// Gets the required size of an account for the given mint as a
-    /// little-endian `u64`.
+    /// little-endian `U256`.
     ///
     /// Return data can be fetched using `sol_get_return_data` and deserializing
     /// the return data as a little-endian `u64`.
@@ -530,13 +531,13 @@ pub enum TokenInstruction<'a> {
     ///   0. `[]` The mint to calculate for
     AmountToUiAmount {
         /// The amount of tokens to convert.
-        amount: u64,
+        amount: U256,
     },
-    /// Convert a `UiAmount` of tokens to a little-endian `u64` raw Amount,
+    /// Convert a `UiAmount` of tokens to a little-endian `U256` raw Amount,
     /// using the given mint.
     ///
     /// Return data can be fetched using `sol_get_return_data` and deserializing
-    /// the return data as a little-endian `u64`.
+    /// the return data as a little-endian `U256`.
     ///
     /// WARNING: For mints using the interest-bearing or scaled-ui-amount
     /// extensions, this instruction uses standard floating-point arithmetic to
@@ -757,9 +758,9 @@ impl<'a> TokenInstruction<'a> {
             }
             3 | 4 | 7 | 8 => {
                 let amount = rest
-                    .get(..U64_BYTES)
+                    .get(..U256_BYTES)
                     .and_then(|slice| slice.try_into().ok())
-                    .map(u64::from_le_bytes)
+                    .map(U256::from_le_bytes)
                     .ok_or(InvalidInstruction)?;
                 match tag {
                     #[allow(deprecated)]
@@ -834,7 +835,7 @@ impl<'a> TokenInstruction<'a> {
             }
             22 => Self::InitializeImmutableOwner,
             23 => {
-                let (amount, _rest) = Self::unpack_u64(rest)?;
+                let (amount, _rest) = Self::unpack_u256(rest)?;
                 Self::AmountToUiAmount { amount }
             }
             24 => {
@@ -1097,17 +1098,17 @@ impl<'a> TokenInstruction<'a> {
         Ok((value, &input[U16_BYTES..]))
     }
 
-    pub(crate) fn unpack_u64(input: &[u8]) -> Result<(u64, &[u8]), ProgramError> {
+    pub(crate) fn unpack_u256(input: &[u8]) -> Result<(U256, &[u8]), ProgramError> {
         let value = input
-            .get(..U64_BYTES)
+            .get(..U256_BYTES)
             .and_then(|slice| slice.try_into().ok())
-            .map(u64::from_le_bytes)
+            .map(U256::from_le_bytes)
             .ok_or(TokenError::InvalidInstruction)?;
-        Ok((value, &input[U64_BYTES..]))
+        Ok((value, &input[U256_BYTES..]))
     }
 
-    pub(crate) fn unpack_amount_decimals(input: &[u8]) -> Result<(u64, u8, &[u8]), ProgramError> {
-        let (amount, rest) = Self::unpack_u64(input)?;
+    pub(crate) fn unpack_amount_decimals(input: &[u8]) -> Result<(U256, u8, &[u8]), ProgramError> {
+        let (amount, rest) = Self::unpack_u256(input)?;
         let (&decimals, rest) = rest.split_first().ok_or(TokenError::InvalidInstruction)?;
         Ok((amount, decimals, rest))
     }
@@ -1404,7 +1405,7 @@ pub fn transfer(
     destination_pubkey: &Pubkey,
     authority_pubkey: &Pubkey,
     signer_pubkeys: &[&Pubkey],
-    amount: u64,
+    amount: U256,
 ) -> Result<Instruction, ProgramError> {
     check_spl_token_program_account(token_program_id)?;
     #[allow(deprecated)]
@@ -1435,7 +1436,7 @@ pub fn approve(
     delegate_pubkey: &Pubkey,
     owner_pubkey: &Pubkey,
     signer_pubkeys: &[&Pubkey],
-    amount: u64,
+    amount: U256,
 ) -> Result<Instruction, ProgramError> {
     check_spl_token_program_account(token_program_id)?;
     let data = TokenInstruction::Approve { amount }.pack();
@@ -1526,7 +1527,7 @@ pub fn mint_to(
     account_pubkey: &Pubkey,
     mint_authority_pubkey: &Pubkey,
     signer_pubkeys: &[&Pubkey],
-    amount: u64,
+    amount: U256,
 ) -> Result<Instruction, ProgramError> {
     check_spl_token_program_account(token_program_id)?;
     let data = TokenInstruction::MintTo { amount }.pack();
@@ -1556,7 +1557,7 @@ pub fn burn(
     mint_pubkey: &Pubkey,
     authority_pubkey: &Pubkey,
     signer_pubkeys: &[&Pubkey],
-    amount: u64,
+    amount: U256,
 ) -> Result<Instruction, ProgramError> {
     check_spl_token_program_account(token_program_id)?;
     let data = TokenInstruction::Burn { amount }.pack();
@@ -1675,7 +1676,7 @@ pub fn transfer_checked(
     destination_pubkey: &Pubkey,
     authority_pubkey: &Pubkey,
     signer_pubkeys: &[&Pubkey],
-    amount: u64,
+    amount: U256,
     decimals: u8,
 ) -> Result<Instruction, ProgramError> {
     check_spl_token_program_account(token_program_id)?;
@@ -1709,7 +1710,7 @@ pub fn approve_checked(
     delegate_pubkey: &Pubkey,
     owner_pubkey: &Pubkey,
     signer_pubkeys: &[&Pubkey],
-    amount: u64,
+    amount: U256,
     decimals: u8,
 ) -> Result<Instruction, ProgramError> {
     check_spl_token_program_account(token_program_id)?;
@@ -1741,7 +1742,7 @@ pub fn mint_to_checked(
     account_pubkey: &Pubkey,
     mint_authority_pubkey: &Pubkey,
     signer_pubkeys: &[&Pubkey],
-    amount: u64,
+    amount: U256,
     decimals: u8,
 ) -> Result<Instruction, ProgramError> {
     check_spl_token_program_account(token_program_id)?;
@@ -1772,7 +1773,7 @@ pub fn burn_checked(
     mint_pubkey: &Pubkey,
     authority_pubkey: &Pubkey,
     signer_pubkeys: &[&Pubkey],
-    amount: u64,
+    amount: U256,
     decimals: u8,
 ) -> Result<Instruction, ProgramError> {
     check_spl_token_program_account(token_program_id)?;
@@ -1859,7 +1860,7 @@ pub fn initialize_immutable_owner(
 pub fn amount_to_ui_amount(
     token_program_id: &Pubkey,
     mint_pubkey: &Pubkey,
-    amount: u64,
+    amount: U256,
 ) -> Result<Instruction, ProgramError> {
     check_spl_token_program_account(token_program_id)?;
 
@@ -2137,7 +2138,7 @@ mod test {
 
     #[test]
     fn test_approve_packing() {
-        let amount = 1;
+        let amount = U256::new(1);
         let check = TokenInstruction::Approve { amount };
         let packed = check.pack();
         let expect = Vec::from([4u8, 1, 0, 0, 0, 0, 0, 0, 0]);
@@ -2175,7 +2176,7 @@ mod test {
 
     #[test]
     fn test_mint_to_packing() {
-        let amount = 1;
+        let amount = U256::new(1);
         let check = TokenInstruction::MintTo { amount };
         let packed = check.pack();
         let expect = Vec::from([7u8, 1, 0, 0, 0, 0, 0, 0, 0]);
@@ -2186,7 +2187,7 @@ mod test {
 
     #[test]
     fn test_burn_packing() {
-        let amount = 1;
+        let amount = U256::new(1);
         let check = TokenInstruction::Burn { amount };
         let packed = check.pack();
         let expect = Vec::from([8u8, 1, 0, 0, 0, 0, 0, 0, 0]);
@@ -2227,7 +2228,7 @@ mod test {
 
     #[test]
     fn test_transfer_checked_packing() {
-        let amount = 1;
+        let amount = U256::new(1);
         let decimals = 2;
         let check = TokenInstruction::TransferChecked { amount, decimals };
         let packed = check.pack();
@@ -2239,7 +2240,7 @@ mod test {
 
     #[test]
     fn test_approve_checked_packing() {
-        let amount = 1;
+        let amount = U256::new(1);
         let decimals = 2;
 
         let check = TokenInstruction::ApproveChecked { amount, decimals };
@@ -2252,7 +2253,7 @@ mod test {
 
     #[test]
     fn test_mint_to_checked_packing() {
-        let amount = 1;
+        let amount = U256::new(1);
         let decimals = 2;
         let check = TokenInstruction::MintToChecked { amount, decimals };
         let packed = check.pack();
@@ -2264,7 +2265,7 @@ mod test {
 
     #[test]
     fn test_burn_checked_packing() {
-        let amount = 1;
+        let amount = U256::new(1);
         let decimals = 2;
         let check = TokenInstruction::BurnChecked { amount, decimals };
         let packed = check.pack();
@@ -2383,7 +2384,7 @@ mod test {
 
     #[test]
     fn test_amount_to_ui_amount_packing() {
-        let amount = 42;
+        let amount = U256::new(42);
         let check = TokenInstruction::AmountToUiAmount { amount };
         let packed = check.pack();
         let expect = vec![23u8, 42, 0, 0, 0, 0, 0, 0, 0];
@@ -2464,7 +2465,7 @@ mod test {
         let source_pubkey = Pubkey::new_unique();
         let destination_pubkey = Pubkey::new_unique();
         let authority_pubkey = Pubkey::new_unique();
-        let amount = 1_000_000_000_000;
+        let amount = U256::new(1_000_000_000_000);
 
         let delegate_pubkey = Pubkey::new_unique();
         let owned_pubkey = Pubkey::new_unique();

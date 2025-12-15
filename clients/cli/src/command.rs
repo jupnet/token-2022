@@ -9,6 +9,7 @@ use {
         sort::{sort_and_parse_token_accounts, AccountFilter},
     },
     clap::{value_t, value_t_or_exit, ArgMatches},
+    ethnum::U256,
     futures::try_join,
     serde::Serialize,
     solana_account_decoder::{
@@ -91,7 +92,7 @@ fn print_error_and_exit<T, E: Display>(e: E) -> T {
     exit(1)
 }
 
-fn amount_to_raw_amount(amount: Amount, decimals: u8, all_amount: Option<u64>, name: &str) -> u64 {
+fn amount_to_raw_amount(amount: Amount, decimals: u8, all_amount: Option<U256>, name: &str) -> U256 {
     match amount {
         Amount::Raw(ui_amount) => ui_amount,
         Amount::Decimal(ui_amount) => spl_token_2022::ui_amount_to_amount(ui_amount, decimals),
@@ -259,7 +260,7 @@ async fn command_create_token(
     member_address: Option<Pubkey>,
     rate_bps: Option<i16>,
     default_account_state: Option<AccountState>,
-    transfer_fee: Option<(u16, u64)>,
+    transfer_fee: Option<(u16, U256)>,
     confidential_transfer_auto_approve: Option<bool>,
     transfer_hook_program_id: Option<Pubkey>,
     enable_metadata: bool,
@@ -1663,7 +1664,7 @@ async fn command_transfer(
                 range_proof_data,
             } = transfer_account_info
                 .generate_split_transfer_proof_data(
-                    transfer_balance,
+                    transfer_balance.as_u64(),
                     &args.sender_elgamal_keypair,
                     &args.sender_aes_key,
                     &recipient_elgamal_pubkey,

@@ -2,6 +2,7 @@
 
 pub use spl_transfer_hook_interface::offchain::{AccountDataResult, AccountFetchError};
 use {
+    ethnum::U256,
     solana_instruction::Instruction,
     solana_program_error::ProgramError,
     solana_pubkey::Pubkey,
@@ -43,7 +44,7 @@ pub async fn create_transfer_checked_instruction_with_extra_metas<F, Fut>(
     destination_pubkey: &Pubkey,
     authority_pubkey: &Pubkey,
     signer_pubkeys: &[&Pubkey],
-    amount: u64,
+    amount: U256,
     decimals: u8,
     fetch_account_data_fn: F,
 ) -> Result<Instruction, AccountFetchError>
@@ -107,9 +108,9 @@ pub async fn create_transfer_checked_with_fee_instruction_with_extra_metas<F, Fu
     destination_pubkey: &Pubkey,
     authority_pubkey: &Pubkey,
     signer_pubkeys: &[&Pubkey],
-    amount: u64,
+    amount: U256,
     decimals: u8,
-    fee: u64,
+    fee: U256,
     fetch_account_data_fn: F,
 ) -> Result<Instruction, AccountFetchError>
 where
@@ -176,7 +177,7 @@ pub async fn add_extra_account_metas<F, Fut>(
     mint_pubkey: &Pubkey,
     destination_pubkey: &Pubkey,
     authority_pubkey: &Pubkey,
-    amount: u64,
+    amount: U256,
     fetch_account_data_fn: F,
 ) -> Result<(), AccountFetchError>
 where

@@ -17,6 +17,7 @@ use {
         processor::Processor,
     },
     bytemuck::Zeroable,
+    ethnum::U256,
     solana_account_info::{next_account_info, AccountInfo},
     solana_clock::Clock,
     solana_cpi::invoke,
@@ -832,7 +833,7 @@ fn process_transfer(
             destination_account_info.clone(),
             authority_info.clone(),
             account_info_iter.as_slice(),
-            u64::MAX,
+            U256::MAX,
         )?;
 
         // unset transferring flag

@@ -2,6 +2,7 @@
 //! correct accounts
 
 use {
+    ethnum::U256,
     solana_account_info::AccountInfo,
     solana_cpi::invoke_signed,
     solana_instruction::{AccountMeta, Instruction},

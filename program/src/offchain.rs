@@ -298,7 +298,7 @@ mod tests {
         let source = Pubkey::new_unique();
         let destination = Pubkey::new_unique();
         let authority = Pubkey::new_unique();
-        let amount = 100u64;
+        let amount = U256::new(100);
 
         let validate_state_pubkey =
             get_extra_account_metas_address(&MINT_PUBKEY, &TRANSFER_HOOK_PROGRAM_ID);
@@ -394,8 +394,8 @@ mod tests {
         let source = Pubkey::new_unique();
         let destination = Pubkey::new_unique();
         let authority = Pubkey::new_unique();
-        let amount = 100u64;
-        let fee = 1u64;
+        let amount = U256::new(100);
+        let fee = U256::ONE;
 
         let validate_state_pubkey =
             get_extra_account_metas_address(&MINT_PUBKEY, &TRANSFER_HOOK_PROGRAM_ID);

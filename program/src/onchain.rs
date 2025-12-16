@@ -235,6 +235,7 @@ mod tests {
             pod::{PodCOption, PodMint},
             state::Multisig,
         },
+        ethnum::AsU256,
         solana_instruction::AccountMeta,
         solana_program_option::COption,
         solana_program_pack::Pack,
@@ -558,9 +559,9 @@ mod tests {
             destination_info.clone(),
             authority_info.clone(),
             &additional_accounts,
-            200,
+            200.as_u256(),
             6,
-            with_fee.then_some(120),
+            with_fee.then_some(120.as_u256()),
         )
         .unwrap();
         let account_keys = account_infos

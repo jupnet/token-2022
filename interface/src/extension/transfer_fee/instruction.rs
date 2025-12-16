@@ -450,9 +450,9 @@ mod test {
         let mut packed = vec![];
         check.pack(&mut packed);
         let mut expect = vec![1];
-        expect.extend_from_slice(&24u64.as_u256().to_le_bytes());
+        expect.extend_from_slice(&U256::new(24).to_le_bytes());
         expect.extend_from_slice(&[24u8]);
-        expect.extend_from_slice(&23u64.as_u256().to_le_bytes());
+        expect.extend_from_slice(&U256::new(23).to_le_bytes());
         assert_eq!(packed, expect);
         let unpacked = TransferFeeInstruction::unpack(&expect).unwrap();
         assert_eq!(unpacked, check);

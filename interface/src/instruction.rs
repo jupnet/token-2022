@@ -2126,7 +2126,7 @@ mod test {
 
     #[test]
     fn test_transfer_packing() {
-        let amount = 1;
+        let amount = U256::ONE;
         #[allow(deprecated)]
         let check = TokenInstruction::Transfer { amount };
         let packed = check.pack();

@@ -19,5 +19,5 @@ solana-program-error = { git = "https://github.com/jupnet/jupnet-sdk" }
 solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk" }
 solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk" }
 solana-zk-sdk = { git = "https://github.com/jupnet/zk-elgamal-proof", branch = "jupnet" }
-spl-pod = { git = "https://github.com/jupnet/libraries", branch = "jupnet" }
+spl-pod = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps" }
 thiserror = "^2.0"

@@ -25,22 +25,22 @@ ethnum = { workspace = true }
 num-derive = "0.4"
 num-traits = "0.2"
 num_enum = "0.7.5"
-solana-account-info = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-clock = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-cpi = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-instruction = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-msg = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-program-entrypoint = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-program-error = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-program-memory = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-program-option = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-program-pack = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-rent = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk" }
+solana-account-info = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-clock = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-cpi = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-instruction = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-msg = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-program-entrypoint = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-program-error = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-program-memory = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-program-option = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-program-pack = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-rent = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
 solana-security-txt = "1.1.1"
-solana-sysvar = { git = "https://github.com/jupnet/jupnet-sdk", features = ["bincode"] }
-solana-system-interface = { git = "https://github.com/jupnet/jupnet-sdk", features = ["bincode"] }
+solana-sysvar = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main", features = ["bincode"] }
+solana-system-interface = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main", features = ["bincode"] }
 solana-zk-sdk = { git = "https://github.com/jupnet/zk-elgamal-proof", branch = "jupnet" }
 spl-elgamal-registry-interface = { version = "0.1.0", path = "../confidential/elgamal-registry-interface" }
 spl-memo-interface = { git = "https://github.com/jupnet/memo", branch = "jupnet" }
@@ -63,13 +63,13 @@ spl-token-confidential-transfer-proof-generation = { version = "0.5.1", path = "
 lazy_static = "1.5.0"
 proptest = "1.9"
 serial_test = "3.2.0"
-solana-account = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-hash = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-keypair = { git = "https://github.com/jupnet/jupnet-sdk" }
+solana-account = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-hash = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-keypair = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
 solana-program-test = { git = "https://github.com/jupnet/jupnet-svm", branch = "v3.1.2" }
-solana-signer = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-transaction = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-transaction-error = { git = "https://github.com/jupnet/jupnet-sdk" }
+solana-signer = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-transaction = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-transaction-error = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
 spl-tlv-account-resolution = { git = "https://github.com/jupnet/libraries", branch = "jupnet" }
 serde_json = "1.0.145"
 test-case = "3.3.1"

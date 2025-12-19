@@ -66,5 +66,5 @@ ethnum = "1.5.2"
 spl-token-confidential-transfer-proof-extraction = { path = "confidential/proof-extraction" }
 spl-token-confidential-transfer-proof-generation = { path = "confidential/proof-generation" }
 spl-token-2022-interface = { path = "interface" }
-jupnet-signature = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-jupnet-signer = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+jupnet-signature = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+jupnet-signer = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }

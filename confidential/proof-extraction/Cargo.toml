@@ -10,14 +10,14 @@ edition = { workspace = true }
 
 [dependencies]
 bytemuck = "^1.24"
-solana-account-info = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-account-info = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
 solana-curve25519 = { git = "https://github.com/jupnet/jupnet-svm", branch = "v3.1.2" }
-solana-instruction = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-solana-instructions-sysvar = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-solana-msg = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-solana-program-error = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-instruction = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-instructions-sysvar = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-msg = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-program-error = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
 solana-zk-sdk = { git = "https://github.com/jupnet/zk-elgamal-proof", branch = "jupnet" }
 spl-pod = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps" }
 thiserror = "^2.0"

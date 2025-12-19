@@ -13,18 +13,18 @@ no-entrypoint = []
 
 [dependencies]
 bytemuck = { version = "1.24.0", features = ["derive"] }
-solana-account-info = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-solana-cpi = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-solana-instruction = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-solana-msg = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-solana-program-entrypoint = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-solana-program-error = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main", features = ["curve25519"] }
-solana-rent = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
-solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main" }
+solana-account-info = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-cpi = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-instruction = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-msg = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-program-entrypoint = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-program-error = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps", features = ["curve25519"] }
+solana-rent = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
 solana-security-txt = "1.1.1"
-solana-system-interface = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main", features = ["bincode"] }
-solana-sysvar = { git = "https://github.com/jupnet/jupnet-sdk", branch = "main", features = ["bincode"] }
+solana-system-interface = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps", features = ["bincode"] }
+solana-sysvar = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps", features = ["bincode"] }
 solana-zk-sdk = { git = "https://github.com/jupnet/zk-elgamal-proof", branch = "jupnet" }
 spl-elgamal-registry-interface = { version = "0.1.0", path = "../elgamal-registry-interface" }
 spl-pod = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps" }

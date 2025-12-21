@@ -9,7 +9,7 @@ use {
         tpu_client::TpuClient, tpu_client::TpuClientConfig,
     },
     solana_remote_wallet::remote_wallet::RemoteWalletManager,
-    jupnet_signer::Signer,
+    jupnet_signer::{ArcSigner, Signer},
     solana_sdk::{
         message::Message, native_token::Sol, program_pack::Pack, pubkey::Pubkey,
     },
@@ -26,7 +26,7 @@ use {
 pub(crate) async fn bench_process_command(
     matches: &ArgMatches,
     config: &Config<'_>,
-    mut signers: Vec<Arc<dyn Signer>>,
+    mut signers: Vec<ArcSigner>,
     wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
 ) -> CommandResult {
     assert!(!config.sign_only);
@@ -131,7 +131,7 @@ async fn get_valid_mint_program_id(
 
 async fn command_create_accounts(
     config: &Config<'_>,
-    signers: Vec<Arc<dyn Signer>>,
+    signers: Vec<ArcSigner>,
     token: &Pubkey,
     n: usize,
     owner: &Pubkey,
@@ -182,7 +182,7 @@ async fn command_create_accounts(
 
 async fn command_close_accounts(
     config: &Config<'_>,
-    signers: Vec<Arc<dyn Signer>>,
+    signers: Vec<ArcSigner>,
     token: &Pubkey,
     n: usize,
     owner: &Pubkey,
@@ -235,7 +235,7 @@ async fn command_close_accounts(
 #[allow(clippy::too_many_arguments)]
 async fn command_deposit_into_or_withdraw_from(
     config: &Config<'_>,
-    signers: Vec<Arc<dyn Signer>>,
+    signers: Vec<ArcSigner>,
     token: &Pubkey,
     n: usize,
     owner: &Pubkey,
@@ -301,7 +301,7 @@ async fn send_messages(
     config: &Config<'_>,
     messages: &[Message],
     mut lamports_required: u64,
-    signers: Vec<Arc<dyn Signer>>,
+    signers: Vec<ArcSigner>,
 ) -> Result<(), Error> {
     if messages.is_empty() {
         println!("Nothing to do");

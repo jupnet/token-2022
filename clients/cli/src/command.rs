@@ -27,11 +27,12 @@ use {
     },
     solana_client::rpc_request::TokenAccountsFilter,
     solana_remote_wallet::remote_wallet::RemoteWalletManager,
+    jupnet_signer::{ArcSigner, Signer},
     solana_sdk::{
         instruction::AccountMeta,
         program_option::COption,
         pubkey::Pubkey,
-        signature::{Keypair, Signer},
+        signature::Keypair,
     },
     solana_system_interface::program as system_program,
     spl_associated_token_account_interface::address::get_associated_token_address_with_program_id,
@@ -107,31 +108,32 @@ fn amount_to_raw_amount(amount: Amount, decimals: u8, all_amount: Option<U256>, 
     }
 }
 
-type BulkSigners = Vec<Arc<dyn Signer>>;
+type BulkSigners = Vec<ArcSigner>;
 pub type CommandResult = Result<String, Error>;
 
-fn push_signer_with_dedup(signer: Arc<dyn Signer>, bulk_signers: &mut BulkSigners) {
-    if !bulk_signers.contains(&signer) {
+fn push_signer_with_dedup(signer: ArcSigner, bulk_signers: &mut BulkSigners) {
+    let signer_pubkey = signer.pubkey();
+    if !bulk_signers.iter().any(|s| s.pubkey() == signer_pubkey) {
         bulk_signers.push(signer);
     }
 }
 
-fn new_throwaway_signer() -> (Arc<dyn Signer>, Pubkey) {
+fn new_throwaway_signer() -> (ArcSigner, Pubkey) {
     let keypair = Keypair::new();
     let pubkey = keypair.pubkey();
-    (Arc::new(keypair) as Arc<dyn Signer>, pubkey)
+    (ArcSigner::from(Arc::new(keypair) as Arc<dyn Signer>), pubkey)
 }
 
 fn get_signer(
     matches: &ArgMatches,
     keypair_name: &str,
     wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
-) -> Option<(Arc<dyn Signer>, Pubkey)> {
+) -> Option<(ArcSigner, Pubkey)> {
     matches.value_of(keypair_name).map(|path| {
         let signer = signer_from_path(matches, path, keypair_name, wallet_manager)
             .unwrap_or_else(print_error_and_exit);
         let signer_pubkey = signer.pubkey();
-        (Arc::from(signer), signer_pubkey)
+        (ArcSigner::from(signer), signer_pubkey)
     })
 }
 
@@ -187,7 +189,7 @@ fn config_token_client(
     ) {
         Ok(token.with_nonce(
             &nonce_account,
-            Arc::clone(nonce_authority),
+            nonce_authority.clone(),
             &nonce_blockhash,
         ))
     } else {
@@ -228,7 +230,7 @@ fn native_token_client_from_config(
     ) {
         Ok(token.with_nonce(
             &nonce_account,
-            Arc::clone(nonce_authority),
+            nonce_authority.clone(),
             &nonce_blockhash,
         ))
     } else {
@@ -269,7 +271,7 @@ async fn command_create_token(
     enable_transfer_hook: bool,
     ui_multiplier: Option<f64>,
     pausable: bool,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     println_display(
         config,
@@ -338,7 +340,7 @@ async fn command_create_token(
             // NOTE: Seed bytes are hardcoded to be empty bytes for now. They
             // will be updated once custom ElGamal keys are supported.
             let elgamal_keypair =
-                ElGamalKeypair::new_from_signer(config.default_signer()?.as_ref(), b"").unwrap();
+                ElGamalKeypair::new_from_signer(&*config.default_signer()?, b"").unwrap();
             extensions.push(
                 ExtensionInitializationParams::ConfidentialTransferFeeConfig {
                     authority: Some(authority),
@@ -471,7 +473,7 @@ async fn command_set_interest_rate(
     token_pubkey: Pubkey,
     rate_authority: Pubkey,
     rate_bps: i16,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     let mut token = token_client_from_config(config, &token_pubkey, None)?;
     // Because set_interest_rate depends on the time, it can cost more between
@@ -535,7 +537,7 @@ async fn command_set_transfer_hook_program(
     token_pubkey: Pubkey,
     authority: Pubkey,
     new_program_id: Option<Pubkey>,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     let token = token_client_from_config(config, &token_pubkey, None)?;
 
@@ -601,7 +603,7 @@ async fn command_initialize_metadata(
     name: String,
     symbol: String,
     uri: String,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     let token = token_client_from_config(config, &token_pubkey, None)?;
 
@@ -635,7 +637,7 @@ async fn command_update_metadata(
     field: Field,
     value: Option<String>,
     transfer_lamports: Option<u64>,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     let token = token_client_from_config(config, &token_pubkey, None)?;
 
@@ -685,7 +687,7 @@ async fn command_initialize_group(
     mint_authority: Pubkey,
     update_authority: Pubkey,
     max_size: u64,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     let token = token_client_from_config(config, &token_pubkey, None)?;
 
@@ -716,7 +718,7 @@ async fn command_update_group_max_size(
     token_pubkey: Pubkey,
     update_authority: Pubkey,
     new_max_size: u64,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     let token = token_client_from_config(config, &token_pubkey, None)?;
 
@@ -741,7 +743,7 @@ async fn command_initialize_member(
     mint_authority: Pubkey,
     group_token_pubkey: Pubkey,
     group_update_authority: Pubkey,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     let token = token_client_from_config(config, &member_token_pubkey, None)?;
 
@@ -773,7 +775,7 @@ async fn command_set_transfer_fee(
     transfer_fee_basis_points: u16,
     maximum_fee: Amount,
     mint_decimals: Option<u8>,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     let decimals = if !config.sign_only {
         let mint_account = config.get_account_checked(&token_pubkey).await?;
@@ -852,7 +854,7 @@ async fn command_create_account(
     owner: Pubkey,
     maybe_account: Option<Pubkey>,
     immutable_owner: bool,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     let token = token_client_from_config(config, &token_pubkey, None)?;
     let mut extensions = vec![];
@@ -920,7 +922,7 @@ async fn command_create_account(
 
 async fn command_create_multisig(
     config: &Config<'_>,
-    multisig: Arc<dyn Signer>,
+    multisig: ArcSigner,
     minimum_signers: u8,
     multisig_members: Vec<Pubkey>,
 ) -> CommandResult {
@@ -1723,7 +1725,7 @@ async fn command_transfer(
                     Some(&equality_proof_pubkey),
                     Some(&ciphertext_validity_proof_account_with_ciphertext),
                     Some(&range_proof_pubkey),
-                    transfer_balance,
+                    transfer_balance.as_u64(),
                     Some(transfer_account_info),
                     &args.sender_elgamal_keypair,
                     &args.sender_aes_key,
@@ -1734,7 +1736,8 @@ async fn command_transfer(
                 .await?;
 
             // close context state accounts
-            let close_context_state_signer = &[&context_state_authority];
+            let context_state_authority_ref: &dyn Signer = &*context_state_authority;
+            let close_context_state_signer = &[context_state_authority_ref];
             let _ = try_join!(
                 token.confidential_transfer_close_context_state_account(
                     &equality_proof_pubkey,
@@ -2654,7 +2657,7 @@ async fn command_withdraw_excess_lamports(
     source_account: Pubkey,
     destination_account: Pubkey,
     authority: Pubkey,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     // default is safe here because withdraw_excess_lamports doesn't use it
     let token = token_client_from_config(config, &Pubkey::default(), None)?;
@@ -3022,7 +3025,7 @@ async fn command_update_confidential_transfer_settings(
     authority: Pubkey,
     auto_approve: Option<bool>,
     auditor_pubkey: Option<ElGamalPubkeyOrNone>,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     let (new_auto_approve, new_auditor_pubkey) = if !config.sign_only {
         let confidential_transfer_account = config.get_account_checked(&token_pubkey).await?;
@@ -3496,7 +3499,8 @@ async fn command_deposit_withdraw_confidential_tokens(
                 .await?;
 
             // close context state account
-            let close_context_state_signer = &[&context_state_authority];
+            let context_state_authority_ref: &dyn Signer = &*context_state_authority;
+            let close_context_state_signer = &[context_state_authority_ref];
             let _ = try_join!(
                 token.confidential_transfer_close_context_state_account(
                     &equality_proof_context_state_pubkey,
@@ -3587,7 +3591,7 @@ async fn command_update_multiplier(
     ui_multiplier_authority: Pubkey,
     new_multiplier: f64,
     new_multiplier_effective_timestamp: i64,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     let token = token_client_from_config(config, &token_pubkey, None)?;
 
@@ -3649,7 +3653,7 @@ async fn command_pause_resume(
     config: &Config<'_>,
     token_pubkey: Pubkey,
     pause_authority: Pubkey,
-    bulk_signers: Vec<Arc<dyn Signer>>,
+    bulk_signers: Vec<ArcSigner>,
     allow_mint_burn_transfer: bool,
 ) -> CommandResult {
     if !config.sign_only {
@@ -3718,7 +3722,7 @@ pub async fn process_command(
     sub_matches: &ArgMatches,
     config: &Config<'_>,
     mut wallet_manager: Option<Rc<RemoteWalletManager>>,
-    mut bulk_signers: Vec<Arc<dyn Signer>>,
+    mut bulk_signers: Vec<ArcSigner>,
 ) -> CommandResult {
     match (sub_command, sub_matches) {
         (CommandName::Bench, arg_matches) => {

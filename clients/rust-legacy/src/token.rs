@@ -457,13 +457,13 @@ where
         program_id: &Pubkey,
         address: &Pubkey,
         decimals: Option<u8>,
-        payer: Arc<dyn Signer>,
+        payer: ArcSigner,
     ) -> Self {
         Token {
             client,
             pubkey: *address,
             decimals,
-            payer: payer.into(),
+            payer,
             program_id: *program_id,
             nonce_account: None,
             nonce_authority: None,
@@ -478,7 +478,7 @@ where
     pub fn new_native(
         client: Arc<dyn ProgramClient<T>>,
         program_id: &Pubkey,
-        payer: Arc<dyn Signer>,
+        payer: ArcSigner,
     ) -> Self {
         Self::new(
             client,
@@ -498,19 +498,19 @@ where
         &self.pubkey
     }
 
-    pub fn with_payer(mut self, payer: Arc<dyn Signer>) -> Self {
-        self.payer = payer.into();
+    pub fn with_payer(mut self, payer: ArcSigner) -> Self {
+        self.payer = payer;
         self
     }
 
     pub fn with_nonce(
         mut self,
         nonce_account: &Pubkey,
-        nonce_authority: Arc<dyn Signer>,
+        nonce_authority: ArcSigner,
         nonce_blockhash: &Hash,
     ) -> Self {
         self.nonce_account = Some(*nonce_account);
-        self.nonce_authority = Some(nonce_authority.into());
+        self.nonce_authority = Some(nonce_authority);
         self.nonce_blockhash = Some(*nonce_blockhash);
         self.transfer_hook_accounts = Some(vec![]);
         self
@@ -791,7 +791,7 @@ where
     pub async fn create_native_mint(
         client: Arc<dyn ProgramClient<T>>,
         program_id: &Pubkey,
-        payer: Arc<dyn Signer>,
+        payer: ArcSigner,
     ) -> TokenResult<Self> {
         let token = Self::new_native(client, program_id, payer);
         token

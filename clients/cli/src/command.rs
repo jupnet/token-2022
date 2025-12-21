@@ -94,8 +94,8 @@ fn print_error_and_exit<T, E: Display>(e: E) -> T {
 
 fn amount_to_raw_amount(amount: Amount, decimals: u8, all_amount: Option<U256>, name: &str) -> U256 {
     match amount {
-        Amount::Raw(ui_amount) => ui_amount,
-        Amount::Decimal(ui_amount) => spl_token_2022::ui_amount_to_amount(ui_amount, decimals),
+        Amount::Raw(ui_amount) => ui_amount.into(),
+        Amount::Decimal(ui_amount) => spl_token_2022::ui_amount_to_amount(ui_amount, decimals).into(),
         Amount::All => {
             if let Some(raw_amount) = all_amount {
                 raw_amount
@@ -822,7 +822,7 @@ async fn command_set_transfer_fee(
             "Setting transfer fee for {} to {} bps, {} maximum",
             token_pubkey,
             transfer_fee_basis_points,
-            spl_token_2022::amount_to_ui_amount(maximum_fee, decimals)
+            spl_token_2022::amount_to_ui_amount(maximum_fee.as_u64(), decimals)
         ),
     );
 
@@ -1328,11 +1328,11 @@ async fn command_transfer(
         Some(token.get_account_info(&sender).await?.base.amount)
     };
 
-    // the amount the user wants to transfer, as a u64
-    let transfer_balance = match ui_amount {
-        Amount::Raw(ui_amount) => ui_amount,
+    // the amount the user wants to transfer, as a U256
+    let transfer_balance: U256 = match ui_amount {
+        Amount::Raw(ui_amount) => ui_amount.into(),
         Amount::Decimal(ui_amount) => {
-            spl_token_2022::ui_amount_to_amount(ui_amount, mint_info.decimals)
+            spl_token_2022::ui_amount_to_amount(ui_amount, mint_info.decimals).into()
         }
         Amount::All => {
             if config.sign_only {
@@ -1340,7 +1340,7 @@ async fn command_transfer(
                     .to_string()
                     .into());
             }
-            sender_balance.unwrap()
+            sender_balance.unwrap().into()
         }
     };
 
@@ -1353,14 +1353,15 @@ async fn command_transfer(
             } else {
                 ""
             },
-            spl_token_2022::amount_to_ui_amount(transfer_balance, mint_info.decimals),
+            spl_token_2022::amount_to_ui_amount(transfer_balance.as_u64(), mint_info.decimals),
             sender,
             recipient
         ),
     );
 
     if let Some(sender_balance) = sender_balance {
-        if transfer_balance > sender_balance && confidential_transfer_args.is_none() {
+        let sender_balance_u256: U256 = sender_balance.into();
+        if transfer_balance > sender_balance_u256 && confidential_transfer_args.is_none() {
             return Err(format!(
                 "Error: Sender has insufficient funds, current balance is {}",
                 spl_token_2022::amount_to_ui_amount_string_trimmed(
@@ -1865,7 +1866,7 @@ async fn command_mint(
         config,
         format!(
             "Minting {} tokens\n  Token: {}\n  Recipient: {}",
-            spl_token_2022::amount_to_ui_amount(amount, mint_info.decimals),
+            spl_token_2022::amount_to_ui_amount(amount.as_u64(), mint_info.decimals),
             token,
             recipient
         ),
@@ -2125,7 +2126,7 @@ async fn command_approve(
         config,
         format!(
             "Approve {} tokens\n  Account: {}\n  Delegate: {}",
-            spl_token_2022::amount_to_ui_amount(amount, mint_info.decimals),
+            spl_token_2022::amount_to_ui_amount(amount.as_u64(), mint_info.decimals),
             account,
             delegate
         ),
@@ -2585,7 +2586,7 @@ async fn command_gc(
                             &address,
                             &associated_token_account,
                             &owner,
-                            amount,
+                            amount.into(),
                             &bulk_signers,
                         )
                         .await,
@@ -3747,10 +3748,10 @@ pub async fn process_command(
                         .unwrap()
                         .parse::<u16>()
                         .unwrap_or_else(print_error_and_exit),
-                    v.next()
+                    U256::from(v.next()
                         .unwrap()
                         .parse::<u64>()
-                        .unwrap_or_else(print_error_and_exit),
+                        .unwrap_or_else(print_error_and_exit)),
                 )
             });
 

@@ -3,6 +3,7 @@ use {
         ProgramClient, ProgramClientError, SendTransaction, SimulateTransaction, SimulationResult,
     },
     bytemuck::{bytes_of, Pod},
+    ethnum::U256,
     futures::future::join_all,
     futures_util::TryFutureExt,
     solana_account::Account as BaseAccount,
@@ -15,7 +16,8 @@ use {
     solana_program_pack::Pack,
     solana_pubkey::Pubkey,
     solana_signature::Signature,
-    solana_signer::{signers::Signers, Signer, SignerError},
+    jupnet_signer::signers::Signers,
+    solana_signer::{Signer, SignerError},
     solana_system_interface::instruction as system_instruction,
     solana_transaction::Transaction,
     spl_associated_token_account_interface::{
@@ -164,7 +166,7 @@ pub enum ExtensionInitializationParams {
         transfer_fee_config_authority: Option<Pubkey>,
         withdraw_withheld_authority: Option<Pubkey>,
         transfer_fee_basis_points: u16,
-        maximum_fee: u64,
+        maximum_fee: U256,
     },
     InterestBearingConfig {
         rate_authority: Option<Pubkey>,
@@ -272,7 +274,7 @@ impl ExtensionInitializationParams {
                 transfer_fee_config_authority.as_ref(),
                 withdraw_withheld_authority.as_ref(),
                 transfer_fee_basis_points,
-                maximum_fee,
+                maximum_fee.into(),
             ),
             Self::InterestBearingConfig {
                 rate_authority,
@@ -1009,7 +1011,7 @@ where
         &self,
         destination: &Pubkey,
         authority: &Pubkey,
-        amount: u64,
+        amount: U256,
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         let signing_pubkeys = signing_keypairs.pubkeys();
@@ -1046,7 +1048,7 @@ where
         source: &Pubkey,
         destination: &Pubkey,
         authority: &Pubkey,
-        amount: u64,
+        amount: U256,
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         let signing_pubkeys = signing_keypairs.pubkeys();
@@ -1111,8 +1113,8 @@ where
         destination: &Pubkey,
         destination_owner: &Pubkey,
         authority: &Pubkey,
-        amount: u64,
-        fee: Option<u64>,
+        amount: U256,
+        fee: Option<U256>,
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         let signing_pubkeys = signing_keypairs.pubkeys();
@@ -1203,8 +1205,8 @@ where
         source: &Pubkey,
         destination: &Pubkey,
         authority: &Pubkey,
-        amount: u64,
-        fee: u64,
+        amount: U256,
+        fee: U256,
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         let signing_pubkeys = signing_keypairs.pubkeys();
@@ -1269,7 +1271,7 @@ where
                 &self.pubkey,
                 authority,
                 &multisig_signers,
-                amount,
+                amount.into(),
                 decimals,
             )?]
         } else {
@@ -1279,7 +1281,7 @@ where
                 &self.pubkey,
                 authority,
                 &multisig_signers,
-                amount,
+                amount.into(),
             )?]
         };
 
@@ -1292,7 +1294,7 @@ where
         source: &Pubkey,
         delegate: &Pubkey,
         authority: &Pubkey,
-        amount: u64,
+        amount: U256,
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         let signing_pubkeys = signing_keypairs.pubkeys();
@@ -1408,7 +1410,7 @@ where
                     tokens_destination,
                     authority,
                     &multisig_signers,
-                    account_state.base.amount,
+                    account_state.base.amount.into(),
                     decimals,
                 )?);
             } else {
@@ -1419,7 +1421,7 @@ where
                     tokens_destination,
                     authority,
                     &multisig_signers,
-                    account_state.base.amount,
+                    account_state.base.amount.into(),
                 )?);
             }
         }
@@ -1592,7 +1594,7 @@ where
         &self,
         authority: &Pubkey,
         transfer_fee_basis_points: u16,
-        maximum_fee: u64,
+        maximum_fee: U256,
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         let signing_pubkeys = signing_keypairs.pubkeys();
@@ -2203,7 +2205,7 @@ where
                 &self.program_id,
                 account,
                 &self.pubkey,
-                amount,
+                amount.into(),
                 decimals,
                 authority,
                 &multisig_signers,
@@ -2440,7 +2442,7 @@ where
             self.get_address(),
             destination_account,
             source_authority,
-            u64::MAX,
+            u64::MAX.into(),
             |address| {
                 self.client
                     .get_account(address)
@@ -2771,7 +2773,7 @@ where
                     auditor_elgamal_pubkey,
                     withdraw_withheld_authority_elgamal_pubkey,
                     fee_rate_basis_points,
-                    maximum_fee,
+                    maximum_fee.into(),
                 )
                 .map_err(|_| TokenError::ProofGeneration)?;
 
@@ -2887,7 +2889,7 @@ where
             self.get_address(),
             destination_account,
             source_authority,
-            u64::MAX,
+            u64::MAX.into(),
             |address| {
                 self.client
                     .get_account(address)
@@ -4129,7 +4131,7 @@ where
     let ixs = create_record_instructions(first_instruction, &[], 0);
     let message = Message::new_with_blockhash(&ixs, Some(&Pubkey::default()), &Hash::default());
     let tx_size = bincode::serialized_size(&Transaction {
-        signatures: vec![Signature::default(); message.header.num_required_signatures as usize],
+        signatures: vec![Signature::default().into(); message.header.num_required_signatures as usize],
         message,
     })
     .unwrap() as usize;

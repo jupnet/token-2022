@@ -12,8 +12,9 @@ use {
     solana_client::nonblocking::rpc_client::RpcClient,
     solana_commitment_config::CommitmentConfig,
     solana_remote_wallet::remote_wallet::RemoteWalletManager,
+    jupnet_signer::Signer,
     solana_sdk::{
-        account::Account as RawAccount, hash::Hash, pubkey::Pubkey, signature::Signer,
+        account::Account as RawAccount, hash::Hash, pubkey::Pubkey,
         signer::null_signer::NullSigner,
     },
     spl_associated_token_account_interface::address::get_associated_token_address_with_program_id,

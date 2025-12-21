@@ -43,7 +43,7 @@ solana-sysvar = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sd
 solana-system-interface = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps", features = ["bincode"] }
 solana-zk-sdk = { git = "https://github.com/jupnet/zk-elgamal-proof", branch = "jupnet" }
 spl-elgamal-registry-interface = { version = "0.1.0", path = "../confidential/elgamal-registry-interface" }
-spl-memo-interface = { git = "https://github.com/jupnet/memo", branch = "jupnet" }
+spl-memo-interface = { git = "https://github.com/jupnet/memo", branch = "fix/sdk-deps" }
 spl-token-2022-interface = { version = "2.1.0", path = "../interface" }
 spl-token-confidential-transfer-ciphertext-arithmetic = { version = "0.4.1", path = "../confidential/ciphertext-arithmetic" }
 spl-token-confidential-transfer-proof-extraction = { version = "0.5.1", path = "../confidential/proof-extraction" }

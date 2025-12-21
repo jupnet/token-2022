@@ -99,6 +99,3 @@ spl-token-interface = { git = "https://github.com/jupnet/token", branch = "fix/t
 spl-generic-token = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps" }
 spl-associated-token-account-interface = { git = "https://github.com/jupnet/associated-token-account", branch = "fix/sdk-deps" }
 spl-record = { git = "https://github.com/jupnet/record", branch = "fix/sdk-deps" }
-
-[patch."https://github.com/jupnet/zk-elgamal-proof"]
-solana-zk-sdk = { path = "../zk-elgamal-proof/zk-sdk" }

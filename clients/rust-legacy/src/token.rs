@@ -16,8 +16,7 @@ use {
     solana_program_pack::Pack,
     solana_pubkey::Pubkey,
     solana_signature::Signature,
-    jupnet_signer::signers::Signers,
-    solana_signer::{Signer, SignerError},
+    jupnet_signer::{signers::Signers, ArcSigner, Signer, SignerError},
     solana_system_interface::instruction as system_instruction,
     solana_transaction::Transaction,
     spl_associated_token_account_interface::{
@@ -397,10 +396,10 @@ pub struct Token<T> {
     client: Arc<dyn ProgramClient<T>>,
     pubkey: Pubkey, /* token mint */
     decimals: Option<u8>,
-    payer: Arc<dyn Signer>,
+    payer: ArcSigner,
     program_id: Pubkey,
     nonce_account: Option<Pubkey>,
-    nonce_authority: Option<Arc<dyn Signer>>,
+    nonce_authority: Option<ArcSigner>,
     nonce_blockhash: Option<Hash>,
     memo: Arc<RwLock<Option<TokenMemo>>>,
     transfer_hook_accounts: Option<Vec<AccountMeta>>,
@@ -464,7 +463,7 @@ where
             client,
             pubkey: *address,
             decimals,
-            payer,
+            payer: payer.into(),
             program_id: *program_id,
             nonce_account: None,
             nonce_authority: None,
@@ -500,7 +499,7 @@ where
     }
 
     pub fn with_payer(mut self, payer: Arc<dyn Signer>) -> Self {
-        self.payer = payer;
+        self.payer = payer.into();
         self
     }
 
@@ -511,7 +510,7 @@ where
         nonce_blockhash: &Hash,
     ) -> Self {
         self.nonce_account = Some(*nonce_account);
-        self.nonce_authority = Some(nonce_authority);
+        self.nonce_authority = Some(nonce_authority.into());
         self.nonce_blockhash = Some(*nonce_blockhash);
         self.transfer_hook_accounts = Some(vec![]);
         self
@@ -2531,7 +2530,7 @@ where
 
         let futures = ixs_batch
             .into_iter()
-            .map(|ixs| async move { self.process_ixs(&ixs, &[record_authority_signer]).await })
+            .map(|ixs| async move { self.process_ixs(&ixs, &[record_authority_signer as &dyn Signer]).await })
             .collect::<Vec<_>>();
 
         join_all(futures).await.into_iter().collect()
@@ -2607,7 +2606,7 @@ where
             let transaction = Transaction::new_signed_with_payer(
                 &[instruction_type.encode_verify_proof(Some(context_state_info), proof_data)],
                 Some(&self.payer.pubkey()),
-                &[self.payer.as_ref()],
+                &[&*self.payer],
                 blockhash,
             );
 

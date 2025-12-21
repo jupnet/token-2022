@@ -1263,7 +1263,7 @@ dependencies = [
  "bitflags 2.10.0",
  "cexpr",
  "clang-sys",
- "itertools 0.13.0",
+ "itertools 0.10.5",
  "proc-macro2",
  "quote",
  "regex",
@@ -3955,7 +3955,7 @@ dependencies = [
 [[package]]
 name = "jupnet-crypto"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bytemuck",
  "dashu",
@@ -3971,7 +3971,7 @@ dependencies = [
 [[package]]
 name = "jupnet-signature"
 version = "1.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "base64-url",
  "bincode",
@@ -3998,7 +3998,7 @@ dependencies = [
 [[package]]
 name = "jupnet-signer"
 version = "1.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "base64-url",
  "bincode",
@@ -6634,7 +6634,7 @@ dependencies = [
 [[package]]
 name = "solana-account"
 version = "3.2.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bincode",
  "serde",
@@ -6772,7 +6772,7 @@ dependencies = [
 [[package]]
 name = "solana-account-info"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bincode",
  "serde_core",
@@ -6929,7 +6929,7 @@ dependencies = [
 [[package]]
 name = "solana-address"
 version = "2.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "borsh",
  "bytemuck",
@@ -6965,7 +6965,7 @@ dependencies = [
 [[package]]
 name = "solana-address-lookup-table-interface"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-clock 3.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
  "solana-pubkey 4.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -6985,7 +6985,7 @@ dependencies = [
 [[package]]
 name = "solana-atomic-u64"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "parking_lot 0.12.5",
 ]
@@ -7164,7 +7164,7 @@ dependencies = [
 [[package]]
 name = "solana-big-mod-exp"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "num-bigint 0.4.6",
  "num-traits",
@@ -7185,7 +7185,7 @@ dependencies = [
 [[package]]
 name = "solana-bincode"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bincode",
  "serde_core",
@@ -7206,7 +7206,7 @@ dependencies = [
 [[package]]
 name = "solana-blake3-hasher"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "blake3",
  "solana-define-syscall 4.0.1 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -7268,7 +7268,7 @@ dependencies = [
 [[package]]
 name = "solana-bn254"
 version = "3.1.2"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "ark-bn254 0.5.0",
  "ark-ec 0.5.0",
@@ -7291,7 +7291,7 @@ dependencies = [
 [[package]]
 name = "solana-borsh"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "borsh",
 ]
@@ -7700,7 +7700,7 @@ dependencies = [
 [[package]]
 name = "solana-client-traits"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "jupnet-signature",
  "jupnet-signer",
@@ -7735,7 +7735,7 @@ dependencies = [
 [[package]]
 name = "solana-clock"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -7758,7 +7758,7 @@ dependencies = [
 [[package]]
 name = "solana-cluster-type"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -7778,7 +7778,7 @@ dependencies = [
 [[package]]
 name = "solana-commitment-config"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -7858,7 +7858,7 @@ dependencies = [
 [[package]]
 name = "solana-compute-budget-interface"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "borsh",
  "solana-instruction 3.1.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -8157,7 +8157,7 @@ dependencies = [
 [[package]]
 name = "solana-cpi"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-account-info 3.1.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
  "solana-define-syscall 4.0.1 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -8208,7 +8208,7 @@ checksum = "57e5b1c0bc1d4a4d10c88a4100499d954c09d3fecfae4912c1a074dff68b1738"
 [[package]]
 name = "solana-define-syscall"
 version = "4.0.1"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 
 [[package]]
 name = "solana-define-syscall"
@@ -8229,7 +8229,7 @@ dependencies = [
 [[package]]
 name = "solana-derivation-path"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "derivation-path",
  "qstring",
@@ -8264,7 +8264,7 @@ dependencies = [
 [[package]]
 name = "solana-ed25519-program"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bytemuck",
  "bytemuck_derive",
@@ -8316,7 +8316,7 @@ dependencies = [
 [[package]]
 name = "solana-epoch-info"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -8339,7 +8339,7 @@ dependencies = [
 [[package]]
 name = "solana-epoch-rewards"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -8363,7 +8363,7 @@ dependencies = [
 [[package]]
 name = "solana-epoch-rewards-hasher"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "siphasher 0.3.11",
  "solana-address 2.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -8386,7 +8386,7 @@ dependencies = [
 [[package]]
 name = "solana-epoch-schedule"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -8398,7 +8398,7 @@ dependencies = [
 [[package]]
 name = "solana-epoch-stake"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-define-syscall 4.0.1 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
  "solana-pubkey 4.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -8407,7 +8407,7 @@ dependencies = [
 [[package]]
 name = "solana-example-mocks"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -8480,7 +8480,7 @@ dependencies = [
 [[package]]
 name = "solana-feature-gate-interface"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bincode",
  "serde",
@@ -8529,7 +8529,7 @@ dependencies = [
 [[package]]
 name = "solana-fee-calculator"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "log",
  "serde",
@@ -8549,7 +8549,7 @@ dependencies = [
 [[package]]
 name = "solana-fee-structure"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -8558,7 +8558,7 @@ dependencies = [
 [[package]]
 name = "solana-file-download"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "console 0.15.11",
  "indicatif 0.17.11",
@@ -8598,7 +8598,7 @@ dependencies = [
 [[package]]
 name = "solana-genesis-config"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bincode",
  "chrono",
@@ -8747,7 +8747,7 @@ dependencies = [
 [[package]]
 name = "solana-hard-forks"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -8780,7 +8780,7 @@ dependencies = [
 [[package]]
 name = "solana-hash"
 version = "4.0.1"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "borsh",
  "bytemuck",
@@ -8805,7 +8805,7 @@ dependencies = [
 [[package]]
 name = "solana-inflation"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -8828,7 +8828,7 @@ dependencies = [
 [[package]]
 name = "solana-instruction"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bincode",
  "borsh",
@@ -8866,7 +8866,7 @@ dependencies = [
 [[package]]
 name = "solana-instruction-error"
 version = "2.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "num-traits",
  "serde",
@@ -8904,7 +8904,7 @@ dependencies = [
 [[package]]
 name = "solana-instructions-sysvar"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bitflags 2.10.0",
  "solana-account-info 3.1.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -8932,7 +8932,7 @@ dependencies = [
 [[package]]
 name = "solana-keccak-hasher"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "sha3",
  "solana-define-syscall 4.0.1 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -8960,7 +8960,7 @@ dependencies = [
 [[package]]
 name = "solana-keypair"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "ed25519-dalek",
  "ed25519-dalek-bip32",
@@ -8990,7 +8990,7 @@ dependencies = [
 [[package]]
 name = "solana-last-restart-slot"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -9122,7 +9122,7 @@ dependencies = [
 [[package]]
 name = "solana-loader-v2-interface"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_bytes",
@@ -9150,7 +9150,7 @@ dependencies = [
 [[package]]
 name = "solana-loader-v3-interface"
 version = "6.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_bytes",
@@ -9179,7 +9179,7 @@ dependencies = [
 [[package]]
 name = "solana-loader-v4-interface"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_bytes",
@@ -9292,7 +9292,7 @@ dependencies = [
 [[package]]
 name = "solana-message"
 version = "3.0.1"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bincode",
  "blake3",
@@ -9350,7 +9350,7 @@ dependencies = [
 [[package]]
 name = "solana-msg"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-define-syscall 4.0.1 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
 ]
@@ -9364,7 +9364,7 @@ checksum = "ae8dd4c280dca9d046139eb5b7a5ac9ad10403fbd64964c7d7571214950d758f"
 [[package]]
 name = "solana-native-token"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 
 [[package]]
 name = "solana-net-utils"
@@ -9433,7 +9433,7 @@ dependencies = [
 [[package]]
 name = "solana-nonce"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -9458,7 +9458,7 @@ dependencies = [
 [[package]]
 name = "solana-nonce-account"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-account 3.2.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
  "solana-hash 4.0.1 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -9469,7 +9469,7 @@ dependencies = [
 [[package]]
 name = "solana-offchain-message"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "jupnet-signature",
  "jupnet-signer",
@@ -9501,7 +9501,7 @@ dependencies = [
 [[package]]
 name = "solana-packet"
 version = "4.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bincode",
  "bitflags 2.10.0",
@@ -9615,7 +9615,7 @@ dependencies = [
 [[package]]
 name = "solana-poh-config"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -9659,7 +9659,7 @@ dependencies = [
 [[package]]
 name = "solana-precompile-error"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "num-traits",
 ]
@@ -9667,7 +9667,7 @@ dependencies = [
 [[package]]
 name = "solana-presigner"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "jupnet-signature",
  "jupnet-signer",
@@ -9678,7 +9678,7 @@ dependencies = [
 [[package]]
 name = "solana-program"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bs58",
  "bytemuck",
@@ -9776,7 +9776,7 @@ dependencies = [
 [[package]]
 name = "solana-program-entrypoint"
 version = "3.1.1"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-account-info 3.1.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
  "solana-define-syscall 4.0.1 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -9793,7 +9793,7 @@ checksum = "a1af32c995a7b692a915bb7414d5f8e838450cf7c70414e763d8abcae7b51f28"
 [[package]]
 name = "solana-program-error"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "borsh",
  "serde",
@@ -9817,7 +9817,7 @@ dependencies = [
 [[package]]
 name = "solana-program-memory"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-define-syscall 4.0.1 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
 ]
@@ -9831,7 +9831,7 @@ checksum = "8e7b4ddb464f274deb4a497712664c3b612e3f5f82471d4e47710fc4ab1c3095"
 [[package]]
 name = "solana-program-option"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 
 [[package]]
 name = "solana-program-option"
@@ -9850,7 +9850,7 @@ dependencies = [
 [[package]]
 name = "solana-program-pack"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-program-error 3.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
 ]
@@ -10101,7 +10101,7 @@ dependencies = [
 [[package]]
 name = "solana-pubkey"
 version = "4.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "rand 0.8.5",
  "solana-address 2.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -10235,7 +10235,7 @@ dependencies = [
 [[package]]
 name = "solana-quic-definitions"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-keypair 3.1.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
 ]
@@ -10284,7 +10284,7 @@ dependencies = [
 [[package]]
 name = "solana-rent"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -10319,7 +10319,7 @@ dependencies = [
 [[package]]
 name = "solana-reward-info"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -10940,7 +10940,7 @@ checksum = "dcf09694a0fc14e5ffb18f9b7b7c0f15ecb6eac5b5610bf76a1853459d19daf9"
 [[package]]
 name = "solana-sanitize"
 version = "3.0.1"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 
 [[package]]
 name = "solana-sanitize"
@@ -10967,7 +10967,7 @@ dependencies = [
 [[package]]
 name = "solana-sdk"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bincode",
  "bs58",
@@ -11013,7 +11013,7 @@ dependencies = [
 [[package]]
 name = "solana-sdk-ids"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-address 2.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
 ]
@@ -11041,7 +11041,7 @@ dependencies = [
 [[package]]
 name = "solana-sdk-macro"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bs58",
  "proc-macro2",
@@ -11064,7 +11064,7 @@ dependencies = [
 [[package]]
 name = "solana-secp256k1-program"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "digest 0.10.7",
  "k256",
@@ -11086,7 +11086,7 @@ dependencies = [
 [[package]]
 name = "solana-secp256k1-recover"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "k256",
  "solana-define-syscall 4.0.1 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -11114,7 +11114,7 @@ dependencies = [
 [[package]]
 name = "solana-seed-derivable"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-derivation-path 3.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
 ]
@@ -11133,7 +11133,7 @@ dependencies = [
 [[package]]
 name = "solana-seed-phrase"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "hmac 0.12.1",
  "pbkdf2 0.11.0",
@@ -11206,7 +11206,7 @@ dependencies = [
 [[package]]
 name = "solana-serde"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
 ]
@@ -11223,7 +11223,7 @@ dependencies = [
 [[package]]
 name = "solana-serde-varint"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
 ]
@@ -11242,7 +11242,7 @@ dependencies = [
 [[package]]
 name = "solana-serialize-utils"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-instruction-error 2.1.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
  "solana-pubkey 4.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -11263,7 +11263,7 @@ dependencies = [
 [[package]]
 name = "solana-sha256-hasher"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "sha2 0.10.9",
  "solana-define-syscall 4.0.1 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -11282,7 +11282,7 @@ dependencies = [
 [[package]]
 name = "solana-short-vec"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde_core",
 ]
@@ -11301,7 +11301,7 @@ dependencies = [
 [[package]]
 name = "solana-shred-version"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-hard-forks 3.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
  "solana-hash 4.0.1 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -11325,7 +11325,7 @@ dependencies = [
 [[package]]
 name = "solana-signature"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "ed25519-dalek",
  "five8 1.0.0",
@@ -11350,7 +11350,7 @@ dependencies = [
 [[package]]
 name = "solana-signer"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-pubkey 4.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
  "solana-signature 3.1.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -11360,7 +11360,7 @@ dependencies = [
 [[package]]
 name = "solana-signer-store"
 version = "0.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bitvec",
  "num-derive",
@@ -11384,7 +11384,7 @@ dependencies = [
 [[package]]
 name = "solana-slot-hashes"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -11409,7 +11409,7 @@ dependencies = [
 [[package]]
 name = "solana-slot-history"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bv",
  "serde",
@@ -11431,7 +11431,7 @@ dependencies = [
 [[package]]
 name = "solana-stable-layout"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-instruction 3.1.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
  "solana-pubkey 4.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -11838,7 +11838,7 @@ dependencies = [
 [[package]]
 name = "solana-system-interface"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "num-traits",
  "serde",
@@ -11917,7 +11917,7 @@ dependencies = [
 [[package]]
 name = "solana-system-transaction"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "jupnet-signer",
  "solana-hash 4.0.1 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -11964,7 +11964,7 @@ dependencies = [
 [[package]]
 name = "solana-sysvar"
 version = "3.1.1"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -12007,7 +12007,7 @@ dependencies = [
 [[package]]
 name = "solana-sysvar-id"
 version = "3.1.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "solana-address 2.0.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
  "solana-sdk-ids 3.1.0 (git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps)",
@@ -12074,7 +12074,7 @@ checksum = "0ced92c60aa76ec4780a9d93f3bd64dfa916e1b998eacc6f1c110f3f444f02c9"
 [[package]]
 name = "solana-time-utils"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 
 [[package]]
 name = "solana-tls-utils"
@@ -12245,7 +12245,7 @@ dependencies = [
 [[package]]
 name = "solana-transaction"
 version = "3.0.2"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bincode",
  "jupnet-signature",
@@ -12311,7 +12311,7 @@ dependencies = [
 [[package]]
 name = "solana-transaction-error"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "serde",
  "serde_derive",
@@ -12588,7 +12588,7 @@ dependencies = [
 [[package]]
 name = "solana-validator-exit"
 version = "3.0.0"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 
 [[package]]
 name = "solana-version"
@@ -12699,7 +12699,7 @@ dependencies = [
 [[package]]
 name = "solana-vote-interface"
 version = "4.0.4"
-source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#3833941654d2fce958583f4079e16b9103025763"
+source = "git+https://github.com/jupnet/jupnet-sdk?branch=fix%2Fsdk-deps#2a9331b6f168050f802fb9a11ac49cdb549b1399"
 dependencies = [
  "bincode",
  "cfg_eval",

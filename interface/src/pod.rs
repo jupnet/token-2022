@@ -1,5 +1,7 @@
 //! Rewrites of the base state types represented as Pods
 
+use spl_pod::primitives::PodU256;
+
 #[cfg(test)]
 use crate::state::{Account, Mint, Multisig};
 use {
@@ -29,7 +31,7 @@ pub struct PodMint {
     /// minted.
     pub mint_authority: PodCOption<Pubkey>,
     /// Total supply of tokens.
-    pub supply: PodU64,
+    pub supply: PodU256,
     /// Number of base 10 digits to the right of the decimal place.
     pub decimals: u8,
     /// If `true`, this structure has been initialized
@@ -67,7 +69,7 @@ pub struct PodAccount {
     /// The owner of this account.
     pub owner: Pubkey,
     /// The amount of tokens this account holds.
-    pub amount: PodU64,
+    pub amount: PodU256,
     /// If `delegate` is `Some` then `delegated_amount` represents
     /// the amount authorized by the delegate
     pub delegate: PodCOption<Pubkey>,
@@ -79,7 +81,7 @@ pub struct PodAccount {
     /// drop below this threshold.
     pub is_native: PodCOption<PodU64>,
     /// The amount delegated
-    pub delegated_amount: PodU64,
+    pub delegated_amount: PodU256,
     /// Optional authority to close the account.
     pub close_authority: PodCOption<Pubkey>,
 }
@@ -274,12 +276,13 @@ pub(crate) mod test {
             },
             AccountState,
         },
+        ethnum::AsU256,
         spl_pod::bytemuck::pod_from_bytes,
     };
 
     pub const TEST_POD_MINT: PodMint = PodMint {
         mint_authority: PodCOption::some(Pubkey::new_from_array([1; 32])),
-        supply: PodU64::from_primitive(42),
+        supply: PodU256::from_u64(42),
         decimals: 7,
         is_initialized: PodBool::from_bool(true),
         freeze_authority: PodCOption::some(Pubkey::new_from_array([2; 32])),
@@ -287,11 +290,11 @@ pub(crate) mod test {
     pub const TEST_POD_ACCOUNT: PodAccount = PodAccount {
         mint: Pubkey::new_from_array([1; 32]),
         owner: Pubkey::new_from_array([2; 32]),
-        amount: PodU64::from_primitive(3),
+        amount: PodU256::from_u64(3),
         delegate: PodCOption::some(Pubkey::new_from_array([4; 32])),
         state: AccountState::Frozen as u8,
         is_native: PodCOption::some(PodU64::from_primitive(5)),
-        delegated_amount: PodU64::from_primitive(6),
+        delegated_amount: PodU256::from_u64(6),
         close_authority: PodCOption::some(Pubkey::new_from_array([7; 32])),
     };
 

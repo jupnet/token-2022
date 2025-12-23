@@ -1,6 +1,7 @@
 use {
     crate::clap_app::{Error, COMPUTE_UNIT_LIMIT_ARG, COMPUTE_UNIT_PRICE_ARG, MULTISIG_SIGNER_ARG},
     clap::ArgMatches,
+    jupnet_signer::{ArcSigner, Signer},
     solana_clap_v3_utils::{
         input_parsers::pubkey_of_signer,
         input_validators::normalize_to_url_if_moniker,
@@ -13,7 +14,7 @@ use {
     solana_commitment_config::CommitmentConfig,
     solana_remote_wallet::remote_wallet::RemoteWalletManager,
     solana_sdk::{
-        account::Account as RawAccount, hash::Hash, pubkey::Pubkey, signature::Signer,
+        account::Account as RawAccount, hash::Hash, pubkey::Pubkey,
         signer::null_signer::NullSigner,
     },
     spl_associated_token_account_interface::address::get_associated_token_address_with_program_id,
@@ -43,7 +44,7 @@ fn get_cli_config(matches: &ArgMatches) -> solana_cli_config::Config {
     }
 }
 
-type SignersOf = Vec<(Arc<dyn Signer>, Pubkey)>;
+type SignersOf = Vec<(ArcSigner, Pubkey)>;
 fn signers_of(
     matches: &ArgMatches,
     name: &str,
@@ -55,7 +56,7 @@ fn signers_of(
             let name = format!("{}-{}", name, i.saturating_add(1));
             let signer = signer_from_path(matches, value, &name, wallet_manager)?;
             let signer_pubkey = signer.pubkey();
-            results.push((Arc::from(signer), signer_pubkey));
+            results.push((ArcSigner::from(signer), signer_pubkey));
         }
         Ok(Some(results))
     } else {
@@ -73,14 +74,14 @@ const DEFAULT_RPC_TIMEOUT: Duration = Duration::from_secs(30);
 const DEFAULT_CONFIRM_TX_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub struct Config<'a> {
-    pub default_signer: Option<Arc<dyn Signer>>,
+    pub default_signer: Option<ArcSigner>,
     pub rpc_client: Arc<RpcClient>,
     pub program_client: Arc<dyn ProgramClient<ProgramRpcClientSendTransaction>>,
     pub websocket_url: String,
     pub output_format: OutputFormat,
-    pub fee_payer: Option<Arc<dyn Signer>>,
+    pub fee_payer: Option<ArcSigner>,
     pub nonce_account: Option<Pubkey>,
-    pub nonce_authority: Option<Arc<dyn Signer>>,
+    pub nonce_authority: Option<ArcSigner>,
     pub nonce_blockhash: Option<Hash>,
     pub sign_only: bool,
     pub dump_transaction_message: bool,
@@ -95,7 +96,7 @@ impl<'a> Config<'a> {
     pub async fn new(
         matches: &ArgMatches,
         wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
-        bulk_signers: &mut Vec<Arc<dyn Signer>>,
+        bulk_signers: &mut Vec<ArcSigner>,
         multisigner_ids: &'a mut Vec<Pubkey>,
     ) -> Config<'a> {
         let cli_config = get_cli_config(matches);
@@ -144,7 +145,7 @@ impl<'a> Config<'a> {
     fn extract_multisig_signers(
         matches: &ArgMatches,
         wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
-        bulk_signers: &mut Vec<Arc<dyn Signer>>,
+        bulk_signers: &mut Vec<ArcSigner>,
         multisigner_ids: &'a mut Vec<Pubkey>,
     ) -> Vec<&'a Pubkey> {
         let multisig_signers = signers_of(matches, MULTISIG_SIGNER_ARG.name, wallet_manager)
@@ -164,7 +165,7 @@ impl<'a> Config<'a> {
     pub async fn new_with_clients_and_ws_url(
         matches: &ArgMatches,
         wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
-        bulk_signers: &mut Vec<Arc<dyn Signer>>,
+        bulk_signers: &mut Vec<ArcSigner>,
         multisigner_ids: &'a mut Vec<Pubkey>,
         rpc_client: Arc<RpcClient>,
         program_client: Arc<dyn ProgramClient<ProgramRpcClientSendTransaction>>,
@@ -180,7 +181,7 @@ impl<'a> Config<'a> {
 
         let default_keypair = cli_config.keypair_path.clone();
 
-        let default_signer: Option<Arc<dyn Signer>> = {
+        let default_signer: Option<ArcSigner> = {
             if let Some(owner_path) = matches.try_get_one::<String>("owner").ok().flatten() {
                 signer_from_path_with_config(matches, owner_path, "owner", wallet_manager, &config)
                     .ok()
@@ -203,12 +204,12 @@ impl<'a> Config<'a> {
                 .ok()
             }
         }
-        .map(Arc::from);
+        .map(ArcSigner::from);
 
-        let fee_payer: Option<Arc<dyn Signer>> = matches
+        let fee_payer: Option<ArcSigner> = matches
             .value_of("fee_payer")
             .map(|path| {
-                Arc::from(
+                ArcSigner::from(
                     signer_from_path(matches, path, "fee_payer", wallet_manager).unwrap_or_else(
                         |e| {
                             eprintln!("error: {}", e);
@@ -253,8 +254,8 @@ impl<'a> Config<'a> {
                 NONCE_AUTHORITY_ARG.name,
                 wallet_manager,
             )
-            .map(Arc::from)
-            .map(|s: Arc<dyn Signer>| {
+            .map(ArcSigner::from)
+            .map(|s: ArcSigner| {
                 let p = s.pubkey();
                 (s, p)
             })
@@ -365,7 +366,7 @@ impl<'a> Config<'a> {
     }
 
     // Returns Ok(default signer), or Err if there is no default signer configured
-    pub(crate) fn default_signer(&self) -> Result<Arc<dyn Signer>, Error> {
+    pub(crate) fn default_signer(&self) -> Result<ArcSigner, Error> {
         if let Some(default_signer) = &self.default_signer {
             Ok(default_signer.clone())
         } else {
@@ -377,7 +378,7 @@ impl<'a> Config<'a> {
     }
 
     // Returns Ok(fee payer), or Err if there is no fee payer configured
-    pub fn fee_payer(&self) -> Result<Arc<dyn Signer>, Error> {
+    pub fn fee_payer(&self) -> Result<ArcSigner, Error> {
         if let Some(fee_payer) = &self.fee_payer {
             Ok(fee_payer.clone())
         } else {
@@ -463,13 +464,13 @@ impl<'a> Config<'a> {
         arg_matches: &ArgMatches,
         authority_name: &str,
         wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
-    ) -> (Arc<dyn Signer>, Pubkey) {
+    ) -> (ArcSigner, Pubkey) {
         // If there are `--multisig-signers` on the command line, allow `NullSigner`s to
         // be returned for multisig account addresses
         let config = SignerFromPathConfig {
             allow_null_signer: !self.multisigner_pubkeys.is_empty(),
         };
-        let mut load_authority = move || -> Result<Arc<dyn Signer>, Error> {
+        let mut load_authority = move || -> Result<ArcSigner, Error> {
             if authority_name != "owner" {
                 if let Some(keypair_path) = arg_matches.value_of(authority_name) {
                     return signer_from_path_with_config(
@@ -479,7 +480,7 @@ impl<'a> Config<'a> {
                         wallet_manager,
                         &config,
                     )
-                    .map(Arc::from)
+                    .map(ArcSigner::from)
                     .map_err(|e| e.to_string().into());
                 }
             }

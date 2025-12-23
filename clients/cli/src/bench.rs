@@ -2,6 +2,7 @@
 use {
     crate::{clap_app::Error, command::CommandResult, config::Config},
     clap::ArgMatches,
+    jupnet_signer::{ArcSigner, Signer},
     solana_clap_v3_utils::input_parsers::{pubkey_of_signer, Amount},
     solana_cli_output::display::build_balance_message,
     solana_client::{
@@ -9,9 +10,7 @@ use {
         tpu_client::TpuClient, tpu_client::TpuClientConfig,
     },
     solana_remote_wallet::remote_wallet::RemoteWalletManager,
-    solana_sdk::{
-        message::Message, native_token::Sol, program_pack::Pack, pubkey::Pubkey, signature::Signer,
-    },
+    solana_sdk::{message::Message, native_token::Sol, program_pack::Pack, pubkey::Pubkey},
     solana_system_interface::instruction as system_instruction,
     spl_associated_token_account_interface::address::get_associated_token_address_with_program_id,
     spl_token_2022_interface::{
@@ -25,7 +24,7 @@ use {
 pub(crate) async fn bench_process_command(
     matches: &ArgMatches,
     config: &Config<'_>,
-    mut signers: Vec<Arc<dyn Signer>>,
+    mut signers: Vec<ArcSigner>,
     wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
 ) -> CommandResult {
     assert!(!config.sign_only);
@@ -130,7 +129,7 @@ async fn get_valid_mint_program_id(
 
 async fn command_create_accounts(
     config: &Config<'_>,
-    signers: Vec<Arc<dyn Signer>>,
+    signers: Vec<ArcSigner>,
     token: &Pubkey,
     n: usize,
     owner: &Pubkey,
@@ -181,7 +180,7 @@ async fn command_create_accounts(
 
 async fn command_close_accounts(
     config: &Config<'_>,
-    signers: Vec<Arc<dyn Signer>>,
+    signers: Vec<ArcSigner>,
     token: &Pubkey,
     n: usize,
     owner: &Pubkey,
@@ -234,7 +233,7 @@ async fn command_close_accounts(
 #[allow(clippy::too_many_arguments)]
 async fn command_deposit_into_or_withdraw_from(
     config: &Config<'_>,
-    signers: Vec<Arc<dyn Signer>>,
+    signers: Vec<ArcSigner>,
     token: &Pubkey,
     n: usize,
     owner: &Pubkey,
@@ -282,7 +281,7 @@ async fn command_deposit_into_or_withdraw_from(
                         if deposit_into { address } else { &from_or_to },
                         owner,
                         &[],
-                        amount,
+                        amount.into(),
                         mint_info.decimals,
                     )?],
                     Some(&config.fee_payer()?.pubkey()),
@@ -300,7 +299,7 @@ async fn send_messages(
     config: &Config<'_>,
     messages: &[Message],
     mut lamports_required: u64,
-    signers: Vec<Arc<dyn Signer>>,
+    signers: Vec<ArcSigner>,
 ) -> Result<(), Error> {
     if messages.is_empty() {
         println!("Nothing to do");

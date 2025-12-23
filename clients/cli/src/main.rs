@@ -1,7 +1,7 @@
 use {
-    solana_sdk::signer::Signer,
+    jupnet_signer::ArcSigner,
     spl_token_cli::{clap_app::*, command::process_command, config::Config},
-    std::{str::FromStr, sync::Arc},
+    std::str::FromStr,
 };
 
 #[tokio::main]
@@ -17,7 +17,7 @@ async fn main() -> Result<(), Error> {
     .get_matches();
 
     let mut wallet_manager = None;
-    let mut bulk_signers: Vec<Arc<dyn Signer>> = Vec::new();
+    let mut bulk_signers: Vec<ArcSigner> = Vec::new();
 
     let (sub_command, matches) = app_matches.subcommand().unwrap();
     let sub_command = CommandName::from_str(sub_command).unwrap();

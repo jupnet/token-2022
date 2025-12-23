@@ -15,15 +15,15 @@ opt-level = 3
 [workspace]
 resolver = "2"
 members = [
-  # "clients/cli",
+  "clients/cli",
   #"clients/rust", omitted from workspace until a real client is generated
-  #"clients/rust-legacy",
-  #"confidential/ciphertext-arithmetic",
-  #"confidential/elgamal-registry",
-  #"confidential/elgamal-registry-interface",
-  #"confidential/proof-extraction",
-  #"confidential/proof-generation",
-  #"confidential/proof-tests",
+  "clients/rust-legacy",
+  "confidential/ciphertext-arithmetic",
+  "confidential/elgamal-registry",
+  "confidential/elgamal-registry-interface",
+  "confidential/proof-extraction",
+  "confidential/proof-generation",
+  # "confidential/proof-tests", # excluded due to mollusk-svm pulling incompatible crates.io packages
   "interface",
   "program",
 ]
@@ -38,8 +38,8 @@ edition = "2021"
 [workspace.lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = [
-    'cfg(target_os, values("solana"))',
-    'cfg(feature, values("frozen-abi", "no-entrypoint", "custom-heap", "custom-panic"))',
+  'cfg(target_os, values("solana"))',
+  'cfg(feature, values("frozen-abi", "no-entrypoint", "custom-heap", "custom-panic"))',
 ]
 
 [workspace.metadata.cli]
@@ -60,11 +60,42 @@ tag-message = "Publish {{crate_name}} v{{version}}"
 consolidate-commits = false
 
 [workspace.dependencies]
-ethnum = "1.5.2"
+ethnum = "1.5.0"
+solana-account-decoder = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-clap-v3-utils = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-cli-config = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-cli-output = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-client = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-commitment-config = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-logger = "3.0.0"
+solana-remote-wallet = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-sdk = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-system-interface = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-transaction-status = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
 
 [patch.crates-io]
 spl-token-confidential-transfer-proof-extraction = { path = "confidential/proof-extraction" }
 spl-token-confidential-transfer-proof-generation = { path = "confidential/proof-generation" }
 spl-token-2022-interface = { path = "interface" }
-jupnet-signature = { git = "https://github.com/jupnet/jupnet-sdk" }
-jupnet-signer = { git = "https://github.com/jupnet/jupnet-sdk" }
+jupnet-signature = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+jupnet-signer = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+# Ensure consistent solana types across all dependencies
+spl-pod = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps" }
+spl-type-length-value = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps" }
+spl-discriminator = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps" }
+spl-token-group-interface = { git = "https://github.com/jupnet/token-group", branch = "fix/sdk-deps" }
+spl-token-metadata-interface = { git = "https://github.com/jupnet/token-metadata", branch = "fix/sdk-deps" }
+spl-transfer-hook-interface = { git = "https://github.com/jupnet/transfer-hook", branch = "fix/sdk-deps" }
+spl-memo-interface = { git = "https://github.com/jupnet/memo", branch = "fix/sdk-deps" }
+# Patch solana crates to use jupnet versions
+solana-account-decoder = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-client = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-transaction-status = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-rpc-client = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-rpc-client-api = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-config-interface = { git = "https://github.com/jupnet/config", branch = "fix/sdk-deps" }
+solana-stake-interface = { git = "https://github.com/jupnet/stake", branch = "fix/sdk-deps" }
+spl-token-interface = { git = "https://github.com/jupnet/token", branch = "fix/token-tests" }
+spl-generic-token = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps" }
+spl-associated-token-account-interface = { git = "https://github.com/jupnet/associated-token-account", branch = "fix/sdk-deps" }
+spl-record = { git = "https://github.com/jupnet/record", branch = "fix/sdk-deps" }

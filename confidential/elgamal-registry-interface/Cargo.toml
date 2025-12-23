@@ -10,10 +10,10 @@ edition = { workspace = true }
 
 [dependencies]
 bytemuck = { version = "^1.24", features = ["derive"] }
-solana-instruction = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-program-error = { git = "https://github.com/jupnet/jupnet-sdk" }
-solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", features = ["curve25519"] }
-solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk" }
+solana-instruction = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-program-error = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
+solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps", features = ["curve25519"] }
+solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
 solana-zk-sdk = { git = "https://github.com/jupnet/zk-elgamal-proof", branch = "jupnet" }
 spl-token-confidential-transfer-proof-extraction = { version = "0.5.0", path = "../proof-extraction" }
 

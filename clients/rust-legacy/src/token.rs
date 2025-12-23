@@ -3,6 +3,7 @@ use {
         ProgramClient, ProgramClientError, SendTransaction, SimulateTransaction, SimulationResult,
     },
     bytemuck::{bytes_of, Pod},
+    ethnum::U256,
     futures::future::join_all,
     futures_util::TryFutureExt,
     solana_account::Account as BaseAccount,
@@ -15,7 +16,7 @@ use {
     solana_program_pack::Pack,
     solana_pubkey::Pubkey,
     solana_signature::Signature,
-    solana_signer::{signers::Signers, Signer, SignerError},
+    jupnet_signer::{signers::Signers, ArcSigner, SignerError, Signer},
     solana_system_interface::instruction as system_instruction,
     solana_transaction::Transaction,
     spl_associated_token_account_interface::{
@@ -164,7 +165,7 @@ pub enum ExtensionInitializationParams {
         transfer_fee_config_authority: Option<Pubkey>,
         withdraw_withheld_authority: Option<Pubkey>,
         transfer_fee_basis_points: u16,
-        maximum_fee: u64,
+        maximum_fee: U256,
     },
     InterestBearingConfig {
         rate_authority: Option<Pubkey>,
@@ -272,7 +273,7 @@ impl ExtensionInitializationParams {
                 transfer_fee_config_authority.as_ref(),
                 withdraw_withheld_authority.as_ref(),
                 transfer_fee_basis_points,
-                maximum_fee,
+                maximum_fee.into(),
             ),
             Self::InterestBearingConfig {
                 rate_authority,
@@ -395,10 +396,10 @@ pub struct Token<T> {
     client: Arc<dyn ProgramClient<T>>,
     pubkey: Pubkey, /* token mint */
     decimals: Option<u8>,
-    payer: Arc<dyn Signer>,
+    payer: ArcSigner,
     program_id: Pubkey,
     nonce_account: Option<Pubkey>,
-    nonce_authority: Option<Arc<dyn Signer>>,
+    nonce_authority: Option<ArcSigner>,
     nonce_blockhash: Option<Hash>,
     memo: Arc<RwLock<Option<TokenMemo>>>,
     transfer_hook_accounts: Option<Vec<AccountMeta>>,
@@ -456,7 +457,7 @@ where
         program_id: &Pubkey,
         address: &Pubkey,
         decimals: Option<u8>,
-        payer: Arc<dyn Signer>,
+        payer: ArcSigner,
     ) -> Self {
         Token {
             client,
@@ -477,7 +478,7 @@ where
     pub fn new_native(
         client: Arc<dyn ProgramClient<T>>,
         program_id: &Pubkey,
-        payer: Arc<dyn Signer>,
+        payer: ArcSigner,
     ) -> Self {
         Self::new(
             client,
@@ -497,7 +498,7 @@ where
         &self.pubkey
     }
 
-    pub fn with_payer(mut self, payer: Arc<dyn Signer>) -> Self {
+    pub fn with_payer(mut self, payer: ArcSigner) -> Self {
         self.payer = payer;
         self
     }
@@ -505,7 +506,7 @@ where
     pub fn with_nonce(
         mut self,
         nonce_account: &Pubkey,
-        nonce_authority: Arc<dyn Signer>,
+        nonce_authority: ArcSigner,
         nonce_blockhash: &Hash,
     ) -> Self {
         self.nonce_account = Some(*nonce_account);
@@ -790,7 +791,7 @@ where
     pub async fn create_native_mint(
         client: Arc<dyn ProgramClient<T>>,
         program_id: &Pubkey,
-        payer: Arc<dyn Signer>,
+        payer: ArcSigner,
     ) -> TokenResult<Self> {
         let token = Self::new_native(client, program_id, payer);
         token
@@ -1009,7 +1010,7 @@ where
         &self,
         destination: &Pubkey,
         authority: &Pubkey,
-        amount: u64,
+        amount: U256,
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         let signing_pubkeys = signing_keypairs.pubkeys();
@@ -1046,7 +1047,7 @@ where
         source: &Pubkey,
         destination: &Pubkey,
         authority: &Pubkey,
-        amount: u64,
+        amount: U256,
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         let signing_pubkeys = signing_keypairs.pubkeys();
@@ -1111,8 +1112,8 @@ where
         destination: &Pubkey,
         destination_owner: &Pubkey,
         authority: &Pubkey,
-        amount: u64,
-        fee: Option<u64>,
+        amount: U256,
+        fee: Option<U256>,
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         let signing_pubkeys = signing_keypairs.pubkeys();
@@ -1203,8 +1204,8 @@ where
         source: &Pubkey,
         destination: &Pubkey,
         authority: &Pubkey,
-        amount: u64,
-        fee: u64,
+        amount: U256,
+        fee: U256,
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         let signing_pubkeys = signing_keypairs.pubkeys();
@@ -1269,7 +1270,7 @@ where
                 &self.pubkey,
                 authority,
                 &multisig_signers,
-                amount,
+                amount.into(),
                 decimals,
             )?]
         } else {
@@ -1279,7 +1280,7 @@ where
                 &self.pubkey,
                 authority,
                 &multisig_signers,
-                amount,
+                amount.into(),
             )?]
         };
 
@@ -1292,7 +1293,7 @@ where
         source: &Pubkey,
         delegate: &Pubkey,
         authority: &Pubkey,
-        amount: u64,
+        amount: U256,
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         let signing_pubkeys = signing_keypairs.pubkeys();
@@ -1408,7 +1409,7 @@ where
                     tokens_destination,
                     authority,
                     &multisig_signers,
-                    account_state.base.amount,
+                    account_state.base.amount.into(),
                     decimals,
                 )?);
             } else {
@@ -1419,7 +1420,7 @@ where
                     tokens_destination,
                     authority,
                     &multisig_signers,
-                    account_state.base.amount,
+                    account_state.base.amount.into(),
                 )?);
             }
         }
@@ -1592,7 +1593,7 @@ where
         &self,
         authority: &Pubkey,
         transfer_fee_basis_points: u16,
-        maximum_fee: u64,
+        maximum_fee: U256,
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         let signing_pubkeys = signing_keypairs.pubkeys();
@@ -2203,7 +2204,7 @@ where
                 &self.program_id,
                 account,
                 &self.pubkey,
-                amount,
+                amount.into(),
                 decimals,
                 authority,
                 &multisig_signers,
@@ -2440,7 +2441,7 @@ where
             self.get_address(),
             destination_account,
             source_authority,
-            u64::MAX,
+            u64::MAX.into(),
             |address| {
                 self.client
                     .get_account(address)
@@ -2529,7 +2530,7 @@ where
 
         let futures = ixs_batch
             .into_iter()
-            .map(|ixs| async move { self.process_ixs(&ixs, &[record_authority_signer]).await })
+            .map(|ixs| async move { self.process_ixs(&ixs, &[record_authority_signer as &dyn Signer]).await })
             .collect::<Vec<_>>();
 
         join_all(futures).await.into_iter().collect()
@@ -2605,7 +2606,7 @@ where
             let transaction = Transaction::new_signed_with_payer(
                 &[instruction_type.encode_verify_proof(Some(context_state_info), proof_data)],
                 Some(&self.payer.pubkey()),
-                &[self.payer.as_ref()],
+                &[&*self.payer],
                 blockhash,
             );
 
@@ -2771,7 +2772,7 @@ where
                     auditor_elgamal_pubkey,
                     withdraw_withheld_authority_elgamal_pubkey,
                     fee_rate_basis_points,
-                    maximum_fee,
+                    maximum_fee.into(),
                 )
                 .map_err(|_| TokenError::ProofGeneration)?;
 
@@ -2887,7 +2888,7 @@ where
             self.get_address(),
             destination_account,
             source_authority,
-            u64::MAX,
+            u64::MAX.into(),
             |address| {
                 self.client
                     .get_account(address)
@@ -4129,7 +4130,7 @@ where
     let ixs = create_record_instructions(first_instruction, &[], 0);
     let message = Message::new_with_blockhash(&ixs, Some(&Pubkey::default()), &Hash::default());
     let tx_size = bincode::serialized_size(&Transaction {
-        signatures: vec![Signature::default(); message.header.num_required_signatures as usize],
+        signatures: vec![Signature::default().into(); message.header.num_required_signatures as usize],
         message,
     })
     .unwrap() as usize;

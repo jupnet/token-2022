@@ -16,7 +16,7 @@ use {
     solana_program_pack::Pack,
     solana_pubkey::Pubkey,
     solana_signature::Signature,
-    jupnet_signer::{signers::Signers, ArcSigner, Signer, SignerError},
+    jupnet_signer::{signers::Signers, ArcSigner, SignerError, Signer},
     solana_system_interface::instruction as system_instruction,
     solana_transaction::Transaction,
     spl_associated_token_account_interface::{

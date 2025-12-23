@@ -2,6 +2,7 @@
 use {
     crate::{clap_app::Error, command::CommandResult, config::Config},
     clap::ArgMatches,
+    jupnet_signer::{ArcSigner, Signer},
     solana_clap_v3_utils::input_parsers::{pubkey_of_signer, Amount},
     solana_cli_output::display::build_balance_message,
     solana_client::{
@@ -9,10 +10,7 @@ use {
         tpu_client::TpuClient, tpu_client::TpuClientConfig,
     },
     solana_remote_wallet::remote_wallet::RemoteWalletManager,
-    jupnet_signer::{ArcSigner, Signer},
-    solana_sdk::{
-        message::Message, native_token::Sol, program_pack::Pack, pubkey::Pubkey,
-    },
+    solana_sdk::{message::Message, native_token::Sol, program_pack::Pack, pubkey::Pubkey},
     solana_system_interface::instruction as system_instruction,
     spl_associated_token_account_interface::address::get_associated_token_address_with_program_id,
     spl_token_2022_interface::{

@@ -121,7 +121,7 @@ fn push_signer_with_dedup(signer: ArcSigner, bulk_signers: &mut BulkSigners) {
 fn new_throwaway_signer() -> (ArcSigner, Pubkey) {
     let keypair = Keypair::new();
     let pubkey = keypair.pubkey();
-    (ArcSigner::from(Arc::new(keypair) as Arc<dyn Signer>), pubkey)
+    (ArcSigner::from(Box::new(keypair) as Box<dyn Signer>), pubkey)
 }
 
 fn get_signer(

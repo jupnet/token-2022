@@ -1,6 +1,7 @@
 use {
     crate::clap_app::{Error, COMPUTE_UNIT_LIMIT_ARG, COMPUTE_UNIT_PRICE_ARG, MULTISIG_SIGNER_ARG},
     clap::ArgMatches,
+    jupnet_signer::{ArcSigner, Signer},
     solana_clap_v3_utils::{
         input_parsers::pubkey_of_signer,
         input_validators::normalize_to_url_if_moniker,
@@ -12,7 +13,6 @@ use {
     solana_client::nonblocking::rpc_client::RpcClient,
     solana_commitment_config::CommitmentConfig,
     solana_remote_wallet::remote_wallet::RemoteWalletManager,
-    jupnet_signer::{ArcSigner, Signer},
     solana_sdk::{
         account::Account as RawAccount, hash::Hash, pubkey::Pubkey,
         signer::null_signer::NullSigner,
@@ -56,7 +56,7 @@ fn signers_of(
             let name = format!("{}-{}", name, i.saturating_add(1));
             let signer = signer_from_path(matches, value, &name, wallet_manager)?;
             let signer_pubkey = signer.pubkey();
-            results.push((signer.into(), signer_pubkey));
+            results.push((ArcSigner::from(signer), signer_pubkey));
         }
         Ok(Some(results))
     } else {

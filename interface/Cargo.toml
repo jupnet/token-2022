@@ -20,19 +20,19 @@ ethnum = { workspace = true }
 num-derive = "0.4"
 num-traits = "0.2"
 num_enum = "0.7.5"
-solana-account-info = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
-solana-instruction = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
-solana-program-error = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
-solana-program-option = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
-solana-program-pack = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
-solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
-solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps" }
-solana-zk-sdk = { git = "https://github.com/jupnet/zk-elgamal-proof", branch = "jupnet" }
+solana-account-info = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
+solana-instruction = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
+solana-program-error = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
+solana-program-option = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
+solana-program-pack = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
+solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
+solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
+solana-zk-sdk = { git = "https://github.com/jupnet/zk-elgamal-proof", branch = "fix/sdk-deps-test" }
 spl-token-confidential-transfer-proof-extraction = { version = "0.5.0", path = "../confidential/proof-extraction" }
-spl-token-group-interface = { git = "https://github.com/jupnet/token-group", branch = "fix/sdk-deps" }
-spl-token-metadata-interface = { git = "https://github.com/jupnet/token-metadata", branch = "fix/sdk-deps" }
-spl-type-length-value = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps" }
-spl-pod = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps" }
+spl-token-group-interface = { git = "https://github.com/jupnet/token-group", branch = "fix/sdk-deps-test" }
+spl-token-metadata-interface = { git = "https://github.com/jupnet/token-metadata", branch = "fix/sdk-deps-test" }
+spl-type-length-value = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps-test" }
+spl-pod = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps-test" }
 thiserror = "^2.0"
 serde = { version = "^1.0", optional = true }
 serde_with = { version = "3.15.1", optional = true }
@@ -43,8 +43,8 @@ spl-token-confidential-transfer-proof-generation = { version = "0.5.0", path = "
 
 [dev-dependencies]
 proptest = "1.9"
-solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps", features = ["curve25519"] }
-spl-token-interface = { git = "https://github.com/jupnet/token", branch = "jupnet" }
+solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test", features = ["curve25519"] }
+spl-token-interface = { git = "https://github.com/jupnet/token", branch = "fix/sdk-deps-test" }
 spl-token-2022-interface = { path = ".", features = ["serde"] }
 serde_json = "1.0.145"
 strum = "0.27"

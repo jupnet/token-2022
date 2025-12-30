@@ -51,7 +51,7 @@ tokio = "1.48"
 [dev-dependencies]
 solana-nonce = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
 solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
-solana-test-validator = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-test-validator = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
 assert_cmd = "2.1.1"
 libtest-mimic = "0.8"
 serial_test = "3.2.0"

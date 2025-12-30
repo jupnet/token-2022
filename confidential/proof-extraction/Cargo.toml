@@ -11,7 +11,7 @@ edition = { workspace = true }
 [dependencies]
 bytemuck = "^1.24"
 solana-account-info = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
-solana-curve25519 = { git = "https://github.com/jupnet/jupnet-svm", branch = "v3.1.2" }
+solana-curve25519 = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
 solana-instruction = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
 solana-instructions-sysvar = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
 solana-msg = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }

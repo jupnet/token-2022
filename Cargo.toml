@@ -199,3 +199,13 @@ solana-hard-forks = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fi
 solana-poh-config = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
 solana-time-utils = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
 solana-shred-version = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
+agave-fs = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
+agave-io-uring = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
+agave-logger = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
+agave-reserved-account-keys = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
+agave-snapshots = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
+agave-transaction-view = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
+agave-votor-messages = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
+solana-curve25519 = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
+solana-lattice-hash = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
+solana-poseidon = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }

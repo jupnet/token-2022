@@ -11,7 +11,7 @@ edition = { workspace = true }
 [dependencies]
 base64 = "0.22.1"
 bytemuck = "1.24.0"
-solana-curve25519= { git = "https://github.com/jupnet/jupnet-svm", branch = "v3.1.2" }
+solana-curve25519= { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
 solana-zk-sdk = { git = "https://github.com/jupnet/zk-elgamal-proof", branch = "fix/sdk-deps-test" }
 
 [dev-dependencies]

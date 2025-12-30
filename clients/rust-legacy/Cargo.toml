@@ -27,8 +27,8 @@ ethnum = { workspace = true }
 futures = "0.3.31"
 futures-util = "0.3"
 solana-account = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
-solana-banks-client = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build", optional = true }
-solana-banks-interface = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build", optional = true }
+solana-banks-client = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test", optional = true }
+solana-banks-interface = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test", optional = true }
 solana-compute-budget-interface = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
 solana-cli-output = { workspace = true, optional = true }
 solana-hash = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
@@ -37,10 +37,10 @@ solana-message = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/s
 solana-packet = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
 solana-program-error = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
 solana-program-pack = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
-solana-program-test = { git = "https://github.com/jupnet/jupnet-svm", branch = "v3.1.2", optional = true }
+solana-program-test = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test", optional = true }
 solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
-solana-rpc-client = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
-solana-rpc-client-api = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/v3.1.2-script-build" }
+solana-rpc-client = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
+solana-rpc-client-api = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
 solana-signature = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
 solana-signer = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
 jupnet-signer = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
@@ -66,7 +66,7 @@ async-trait = "0.1"
 borsh = "1.5.7"
 bytemuck = "1.24.0"
 futures-util = "0.3"
-solana-program-test = { git = "https://github.com/jupnet/jupnet-svm", branch = "v3.1.2" }
+solana-program-test = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
 solana-sdk = { workspace = true }
 solana-sdk-ids = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test" }
 spl-pod = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps-test" }

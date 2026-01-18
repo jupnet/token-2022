@@ -11,7 +11,7 @@ license = { workspace = true }
 edition = { workspace = true }
 
 [features]
-serde = ["dep:serde", "dep:serde_with", "dep:base64", "spl-pod/serde-traits", "solana-pubkey/serde"]
+serde = ["dep:serde", "dep:serde_with", "dep:base64", "solana-pubkey/serde"]
 
 [dependencies]
 arrayref = "0.3.9"
@@ -45,7 +45,7 @@ spl-token-confidential-transfer-proof-generation = { version = "0.5.0", path = "
 proptest = "1.9"
 solana-pubkey = { git = "https://github.com/jupnet/jupnet-sdk", branch = "fix/sdk-deps-test", features = ["curve25519"] }
 spl-token-interface = { git = "https://github.com/jupnet/token", branch = "fix/sdk-deps-test" }
-spl-token-2022-interface = { path = ".", features = ["serde"] }
+spl-token-2022-interface = { path = "." }
 serde_json = "1.0.145"
 strum = "0.27"
 strum_macros = "0.27"

@@ -95,7 +95,7 @@ solana-rpc-client = { git = "https://github.com/jupnet/jupnet-svm", branch = "fi
 solana-rpc-client-api = { git = "https://github.com/jupnet/jupnet-svm", branch = "fix/sdk-deps-test" }
 solana-config-interface = { git = "https://github.com/jupnet/config", branch = "fix/sdk-deps-test" }
 solana-stake-interface = { git = "https://github.com/jupnet/stake", branch = "fix/sdk-deps-test" }
-spl-token-interface = { git = "https://github.com/jupnet/token", branch = "fix/token-tests" }
+spl-token-interface = { git = "https://github.com/jupnet/token", branch = "fix/sdk-deps-test" }
 spl-generic-token = { git = "https://github.com/jupnet/libraries", branch = "fix/sdk-deps-test" }
 spl-associated-token-account-interface = { git = "https://github.com/jupnet/associated-token-account", branch = "fix/sdk-deps-test" }
 spl-record = { git = "https://github.com/jupnet/record", branch = "fix/sdk-deps-test" }

@@ -11,6 +11,7 @@ use {
     clap::{value_t, value_t_or_exit, ArgMatches},
     ethnum::U256,
     futures::try_join,
+    jupnet_signer::{ArcSigner, Signer},
     serde::Serialize,
     solana_account_decoder::{
         parse_account_data::SplTokenAdditionalDataV2,
@@ -27,12 +28,8 @@ use {
     },
     solana_client::rpc_request::TokenAccountsFilter,
     solana_remote_wallet::remote_wallet::RemoteWalletManager,
-    jupnet_signer::{ArcSigner, Signer},
     solana_sdk::{
-        instruction::AccountMeta,
-        program_option::COption,
-        pubkey::Pubkey,
-        signature::Keypair,
+        instruction::AccountMeta, program_option::COption, pubkey::Pubkey, signature::Keypair,
     },
     solana_system_interface::program as system_program,
     spl_associated_token_account_interface::address::get_associated_token_address_with_program_id,
@@ -93,10 +90,17 @@ fn print_error_and_exit<T, E: Display>(e: E) -> T {
     exit(1)
 }
 
-fn amount_to_raw_amount(amount: Amount, decimals: u8, all_amount: Option<U256>, name: &str) -> U256 {
+fn amount_to_raw_amount(
+    amount: Amount,
+    decimals: u8,
+    all_amount: Option<U256>,
+    name: &str,
+) -> U256 {
     match amount {
         Amount::Raw(ui_amount) => ui_amount.into(),
-        Amount::Decimal(ui_amount) => spl_token_2022::ui_amount_to_amount(ui_amount, decimals).into(),
+        Amount::Decimal(ui_amount) => {
+            spl_token_2022::ui_amount_to_amount(ui_amount, decimals).into()
+        }
         Amount::All => {
             if let Some(raw_amount) = all_amount {
                 raw_amount
@@ -121,7 +125,10 @@ fn push_signer_with_dedup(signer: ArcSigner, bulk_signers: &mut BulkSigners) {
 fn new_throwaway_signer() -> (ArcSigner, Pubkey) {
     let keypair = Keypair::new();
     let pubkey = keypair.pubkey();
-    (ArcSigner::from(Box::new(keypair) as Box<dyn Signer>), pubkey)
+    (
+        ArcSigner::from(Box::new(keypair) as Box<dyn Signer>),
+        pubkey,
+    )
 }
 
 fn get_signer(
@@ -187,11 +194,7 @@ fn config_token_client(
         &config.nonce_authority,
         config.nonce_blockhash,
     ) {
-        Ok(token.with_nonce(
-            &nonce_account,
-            nonce_authority.clone(),
-            &nonce_blockhash,
-        ))
+        Ok(token.with_nonce(&nonce_account, nonce_authority.clone(), &nonce_blockhash))
     } else {
         Ok(token)
     }
@@ -228,11 +231,7 @@ fn native_token_client_from_config(
         &config.nonce_authority,
         config.nonce_blockhash,
     ) {
-        Ok(token.with_nonce(
-            &nonce_account,
-            nonce_authority.clone(),
-            &nonce_blockhash,
-        ))
+        Ok(token.with_nonce(&nonce_account, nonce_authority.clone(), &nonce_blockhash))
     } else {
         Ok(token)
     }
@@ -879,7 +878,7 @@ async fn command_create_account(
     }
 
     if immutable_owner {
-        if config.program_id == spl_token_interface::id() {
+        if config.program_id == Pubkey::from(spl_token_interface::id().to_bytes()) {
             return Err(format!(
                 "Specified --immutable, but token program {} does not support the extension",
                 config.program_id
@@ -1414,7 +1413,7 @@ async fn command_transfer(
                     "Error: Recipient is owned by this token program, but is not a token account."
                         .into(),
                 );
-            } else if VALID_TOKEN_PROGRAM_IDS.contains(&recipient_account_owner) {
+            } else if valid_token_program_ids().contains(&recipient_account_owner) {
                 return Err(format!(
                     "Error: Recipient is owned by {}, but the token mint is owned by {}.",
                     recipient_account_owner, config.program_id
@@ -2015,7 +2014,7 @@ async fn command_wrap(
     }
 
     let res = if immutable_owner {
-        if config.program_id == spl_token_interface::id() {
+        if config.program_id == Pubkey::from(spl_token_interface::id().to_bytes()) {
             return Err(format!(
                 "Specified --immutable, but token program {} does not support the extension",
                 config.program_id
@@ -2350,8 +2349,8 @@ async fn command_accounts(
         vec![TokenAccountsFilter::ProgramId(config.program_id)]
     } else {
         vec![
-            TokenAccountsFilter::ProgramId(spl_token_interface::id()),
-            TokenAccountsFilter::ProgramId(spl_token_2022_interface::id()),
+            TokenAccountsFilter::ProgramId(Pubkey::from(spl_token_interface::id().to_bytes())),
+            TokenAccountsFilter::ProgramId(Pubkey::from(spl_token_2022_interface::id().to_bytes())),
         ]
     };
 

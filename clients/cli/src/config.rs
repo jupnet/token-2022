@@ -14,8 +14,7 @@ use {
     solana_commitment_config::CommitmentConfig,
     solana_remote_wallet::remote_wallet::RemoteWalletManager,
     solana_sdk::{
-        account::Account as RawAccount, hash::Hash, pubkey::Pubkey,
-        signer::null_signer::NullSigner,
+        account::Account as RawAccount, hash::Hash, pubkey::Pubkey, signer::null_signer::NullSigner,
     },
     spl_associated_token_account_interface::address::get_associated_token_address_with_program_id,
     spl_token_2022_interface::{
@@ -282,9 +281,9 @@ impl<'a> Config<'a> {
                 .and_then(|pubkey| Pubkey::from_str(pubkey).ok())
         };
 
-        let default_program_id = spl_token_interface::id();
+        let default_program_id = Pubkey::from(spl_token_interface::id().to_bytes());
         let (program_id, restrict_to_program_id) = if matches.is_present("program_2022") {
-            (spl_token_2022_interface::id(), true)
+            (Pubkey::from(spl_token_2022_interface::id().to_bytes()), true)
         } else if let Some(program_id) = pubkey_from_matches("program_id") {
             (program_id, true)
         } else if !sign_only {

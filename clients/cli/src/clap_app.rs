@@ -111,8 +111,11 @@ impl OfflineArgs for clap::Command<'_> {
     }
 }
 
-pub static VALID_TOKEN_PROGRAM_IDS: [Pubkey; 2] =
-    [spl_token_2022_interface::ID, spl_token_interface::ID];
+// Only token-2022 is supported - old SPL Token uses u64 amounts which is incompatible
+// with the U256 instruction format used by this CLI
+pub fn valid_token_program_ids() -> [Pubkey; 1] {
+    [Pubkey::from(spl_token_2022_interface::ID.to_bytes())]
+}
 
 #[derive(AsRefStr, Debug, Clone, Copy, PartialEq, EnumString, IntoStaticStr)]
 #[strum(serialize_all = "kebab-case")]
@@ -380,7 +383,7 @@ where
     match is_pubkey(string.as_ref()) {
         Ok(()) => {
             let program_id = string.as_ref().parse::<Pubkey>().unwrap();
-            if VALID_TOKEN_PROGRAM_IDS.contains(&program_id) {
+            if valid_token_program_ids().contains(&program_id) {
                 Ok(())
             } else {
                 Err(format!("Unrecognized token program id: {}", program_id))

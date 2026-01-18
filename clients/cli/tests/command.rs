@@ -1,5 +1,6 @@
 #![allow(clippy::arithmetic_side_effects)]
 use {
+    jupnet_signer::ArcSigner,
     libtest_mimic::{Arguments, Trial},
     solana_cli_output::OutputFormat,
     solana_client::{nonblocking::rpc_client::RpcClient, rpc_request::TokenAccountsFilter},
@@ -188,8 +189,8 @@ fn test_config_with_default_signer<'a>(
         program_client,
         websocket_url,
         output_format: OutputFormat::JsonCompact,
-        fee_payer: Some(Arc::new(clone_keypair(payer))),
-        default_signer: Some(Arc::new(clone_keypair(payer))),
+        fee_payer: Some(ArcSigner::from(Box::new(clone_keypair(payer)) as Box<dyn jupnet_signer::Signer>)),
+        default_signer: Some(ArcSigner::from(Box::new(clone_keypair(payer)) as Box<dyn jupnet_signer::Signer>)),
         nonce_account: None,
         nonce_authority: None,
         nonce_blockhash: None,
@@ -434,7 +435,7 @@ where
     let sub_command = CommandName::from_str(sub_command).unwrap();
 
     let wallet_manager = None;
-    let bulk_signers: Vec<Arc<dyn Signer>> = vec![Arc::new(clone_keypair(payer))];
+    let bulk_signers: Vec<ArcSigner> = vec![ArcSigner::from(Box::new(clone_keypair(payer)) as Box<dyn jupnet_signer::Signer>)];
     process_command(&sub_command, matches, config, wallet_manager, bulk_signers).await
 }
 
@@ -453,7 +454,7 @@ async fn exec_test_cmd<T: AsRef<OsStr>>(config: &Config<'_>, args: &[T]) -> Comm
     let sub_command = CommandName::from_str(sub_command).unwrap();
 
     let mut wallet_manager = None;
-    let mut bulk_signers: Vec<Arc<dyn Signer>> = Vec::new();
+    let mut bulk_signers: Vec<ArcSigner> = Vec::new();
     let mut multisigner_ids = Vec::new();
 
     let config = Config::new_with_clients_and_ws_url(
@@ -471,7 +472,7 @@ async fn exec_test_cmd<T: AsRef<OsStr>>(config: &Config<'_>, args: &[T]) -> Comm
 }
 
 async fn create_token_default(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let result = process_test_command(
             &config,
@@ -490,7 +491,7 @@ async fn create_token_2022(test_validator: &TestValidator, payer: &Keypair) {
     let config =
         test_config_with_default_signer(test_validator, payer, &spl_token_2022_interface::id());
     let mut wallet_manager = None;
-    let mut bulk_signers: Vec<Arc<dyn Signer>> = Vec::new();
+    let mut bulk_signers: Vec<ArcSigner> = Vec::new();
     let mut multisigner_ids = Vec::new();
 
     let args = &[
@@ -590,7 +591,7 @@ async fn set_interest_rate(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn supply(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let result = process_test_command(
@@ -606,7 +607,7 @@ async fn supply(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn create_account_default(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let result = process_test_command(
@@ -624,7 +625,7 @@ async fn create_account_default(test_validator: &TestValidator, payer: &Keypair)
 }
 
 async fn account_info(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let _account = create_associated_account(&config, payer, &token, &payer.pubkey()).await;
@@ -654,7 +655,7 @@ async fn account_info(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn balance(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let _account = create_associated_account(&config, payer, &token, &payer.pubkey()).await;
@@ -671,7 +672,7 @@ async fn balance(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn mint(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let account = create_associated_account(&config, payer, &token, &payer.pubkey()).await;
@@ -746,7 +747,7 @@ async fn mint(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn balance_after_mint(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let account = create_associated_account(&config, payer, &token, &payer.pubkey()).await;
@@ -768,7 +769,7 @@ async fn balance_after_mint(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn balance_after_mint_with_owner(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let account = create_associated_account(&config, payer, &token, &payer.pubkey()).await;
@@ -797,7 +798,7 @@ async fn balance_after_mint_with_owner(test_validator: &TestValidator, payer: &K
 }
 
 async fn accounts(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token1 = create_token(&config, payer).await;
         let _account1 = create_associated_account(&config, payer, &token1, &payer.pubkey()).await;
@@ -815,7 +816,7 @@ async fn accounts(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn accounts_with_owner(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token1 = create_token(&config, payer).await;
         let _account1 = create_associated_account(&config, payer, &token1, &payer.pubkey()).await;
@@ -842,7 +843,7 @@ async fn accounts_with_owner(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn wrapped_sol(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let native_mint = *Token::new_native(
             config.program_client.clone(),
@@ -927,14 +928,14 @@ async fn wrapped_sol(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn transfer(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         run_transfer_test(&config, payer).await;
     }
 }
 
 async fn transfer_fund_recipient(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let source = create_associated_account(&config, payer, &token, &payer.pubkey()).await;
@@ -969,8 +970,8 @@ async fn transfer_fund_recipient(test_validator: &TestValidator, payer: &Keypair
 }
 
 async fn transfer_non_standard_recipient(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
-        for other_program_id in VALID_TOKEN_PROGRAM_IDS
+    for program_id in valid_token_program_ids().iter() {
+        for other_program_id in valid_token_program_ids()
             .iter()
             .filter(|id| *id != program_id)
         {
@@ -1127,7 +1128,7 @@ async fn transfer_non_standard_recipient(test_validator: &TestValidator, payer: 
 }
 
 async fn allow_non_system_account_recipient(test_validator: &TestValidator, payer: &Keypair) {
-    let config = test_config_with_default_signer(test_validator, payer, &spl_token_interface::id());
+    let config = test_config_with_default_signer(test_validator, payer, &valid_token_program_ids()[0]);
 
     let token = create_token(&config, payer).await;
     let source = create_associated_account(&config, payer, &token, &payer.pubkey()).await;
@@ -1164,7 +1165,7 @@ async fn allow_non_system_account_recipient(test_validator: &TestValidator, paye
 }
 
 async fn close_account(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
 
         let native_mint = Token::new_native(
@@ -1227,7 +1228,7 @@ async fn close_account(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn disable_mint_authority(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let result = process_test_command(
@@ -1251,7 +1252,7 @@ async fn disable_mint_authority(test_validator: &TestValidator, payer: &Keypair)
 }
 
 async fn gc(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let mut config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let _account = create_associated_account(&config, payer, &token, &payer.pubkey()).await;
@@ -1419,7 +1420,7 @@ async fn gc(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn set_owner(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let aux = create_auxiliary_account(&config, payer, token).await;
@@ -1445,7 +1446,7 @@ async fn set_owner(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn transfer_with_account_delegate(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
 
         let token = create_token(&config, payer).await;
@@ -1556,7 +1557,7 @@ async fn transfer_with_account_delegate(test_validator: &TestValidator, payer: &
 }
 
 async fn burn(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let mut config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let source = create_associated_account(&config, payer, &token, &payer.pubkey()).await;
@@ -1632,7 +1633,7 @@ async fn burn(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn burn_with_account_delegate(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
 
         let token = create_token(&config, payer).await;
@@ -2980,7 +2981,7 @@ async fn multisig_transfer(test_validator: &TestValidator, payer: &Keypair) {
                 (s.pubkey(), keypair_file)
             })
             .unzip();
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let config = test_config_with_default_signer(test_validator, payer, program_id);
         let token = create_token(&config, payer).await;
         let multisig = Arc::new(Keypair::new());
@@ -3093,7 +3094,7 @@ async fn do_offline_multisig_transfer(
             (s.pubkey(), keypair_file)
         })
         .unzip();
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let mut config = test_config_with_default_signer(test_validator, payer, program_id);
         config.compute_unit_limit = ComputeUnitLimit::Default;
         let token = create_token(&config, payer).await;
@@ -4337,7 +4338,7 @@ async fn group(test_validator: &TestValidator, payer: &Keypair) {
 }
 
 async fn compute_budget(test_validator: &TestValidator, payer: &Keypair) {
-    for program_id in VALID_TOKEN_PROGRAM_IDS.iter() {
+    for program_id in valid_token_program_ids().iter() {
         let mut config = test_config_with_default_signer(test_validator, payer, program_id);
         config.compute_unit_price = Some(42);
         config.compute_unit_limit = ComputeUnitLimit::Static(40_000);

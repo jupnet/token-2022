@@ -1,5 +1,7 @@
+#![allow(deprecated)]
 mod program_test;
 use {
+    ethnum::U256,
     futures_util::TryFutureExt,
     program_test::{
         ConfidentialTokenAccountBalances, ConfidentialTokenAccountMeta, TestContext, TokenContext,
@@ -72,7 +74,7 @@ async fn setup_accounts(
         .mint_to(
             &alice_account,
             &token_context.mint_authority.pubkey(),
-            amount,
+            amount.into(),
             &[&token_context.mint_authority],
         )
         .await
@@ -81,8 +83,13 @@ async fn setup_accounts(
 }
 
 fn setup_program_test(program_id: &Pubkey) -> ProgramTest {
-    let mut program_test = ProgramTest::default();
-    program_test.add_program("spl_token_2022", spl_token_2022_interface::id(), None);
+    // Use BPF version of token-2022 to enable CPI for transfer hooks
+    let mut program_test = ProgramTest::new(
+        "spl_token_2022",
+        spl_token_2022_interface::id(),
+        None,
+    );
+    program_test.prefer_bpf(true);
     program_test.add_program("spl_transfer_hook_example", *program_id, None);
     program_test
 }
@@ -188,7 +195,7 @@ async fn setup_with_fee(mint: Keypair, program_id: &Pubkey, authority: &Pubkey) 
                     transfer_fee_config_authority: transfer_fee_config_authority.pubkey().into(),
                     withdraw_withheld_authority: withdraw_withheld_authority.pubkey().into(),
                     transfer_fee_basis_points,
-                    maximum_fee,
+                    maximum_fee: maximum_fee.into(),
                 },
             ],
             None,
@@ -254,8 +261,12 @@ async fn success_init() {
 
 #[tokio::test]
 async fn fail_init_all_none() {
-    let mut program_test = ProgramTest::default();
-    program_test.add_program("spl_token_2022", spl_token_2022_interface::id(), None);
+    let mut program_test = ProgramTest::new(
+        "spl_token_2022",
+        spl_token_2022_interface::id(),
+        None,
+    );
+    program_test.prefer_bpf(true);
     let context = program_test.start_with_context().await;
     let context = Arc::new(tokio::sync::Mutex::new(context));
     let mut context = TestContext {
@@ -445,7 +456,7 @@ async fn success_transfer() {
             &alice_account,
             &bob_account,
             &token_context.alice.pubkey(),
-            amount,
+            amount.into(),
             &[&token_context.alice],
         )
         .await
@@ -513,7 +524,7 @@ async fn success_transfer_with_fee() {
         newer_transfer_fee: transfer_fee,
     };
     let fee = transfer_fee_config
-        .calculate_epoch_fee(0, transfer_amount)
+        .calculate_epoch_fee(0, transfer_amount.into())
         .unwrap();
 
     token_context
@@ -522,7 +533,7 @@ async fn success_transfer_with_fee() {
             &alice_account,
             &bob_account,
             &token_context.alice.pubkey(),
-            transfer_amount,
+            transfer_amount.into(),
             fee,
             &[&token_context.alice],
         )
@@ -553,7 +564,9 @@ async fn success_transfer_with_fee() {
     assert_eq!(extension.withheld_amount, fee.into());
 
     // Check that the correct amount was added to Bobs's account
-    assert_eq!(bob_state.base.amount, transfer_amount - fee);
+    let transfer_amount_u256: U256 = transfer_amount.into();
+    let expected_amount: u64 = (transfer_amount_u256 - fee).try_into().unwrap();
+    assert_eq!(bob_state.base.amount, expected_amount);
 
     // the example program checks that the transferring flag was set to true,
     // so make sure that it was correctly unset by the token program
@@ -579,8 +592,12 @@ async fn fail_transfer_hook_program() {
     let authority = Pubkey::new_unique();
     let program_id = Pubkey::new_unique();
     let mint = Keypair::new();
-    let mut program_test = ProgramTest::default();
-    program_test.add_program("spl_token_2022", spl_token_2022_interface::id(), None);
+    let mut program_test = ProgramTest::new(
+        "spl_token_2022",
+        spl_token_2022_interface::id(),
+        None,
+    );
+    program_test.prefer_bpf(true);
     program_test.add_program("spl_transfer_hook_example_fail", program_id, None);
     let validation_address = get_extra_account_metas_address(&mint.pubkey(), &program_id);
     program_test.add_account(
@@ -621,7 +638,7 @@ async fn fail_transfer_hook_program() {
             &alice_account,
             &bob_account,
             &token_context.alice.pubkey(),
-            amount,
+            amount.into(),
             &[&token_context.alice],
         )
         .await
@@ -639,8 +656,12 @@ async fn success_downgrade_writable_and_signer_accounts() {
     let authority = Pubkey::new_unique();
     let program_id = Pubkey::new_unique();
     let mint = Keypair::new();
-    let mut program_test = ProgramTest::default();
-    program_test.add_program("spl_token_2022", spl_token_2022_interface::id(), None);
+    let mut program_test = ProgramTest::new(
+        "spl_token_2022",
+        spl_token_2022_interface::id(),
+        None,
+    );
+    program_test.prefer_bpf(true);
     program_test.add_program("spl_transfer_hook_example_downgrade", program_id, None);
     let alice = Keypair::new();
     let alice_account = Keypair::new();
@@ -698,7 +719,7 @@ async fn success_downgrade_writable_and_signer_accounts() {
             &alice_account,
             &bob_account,
             &token_context.alice.pubkey(),
-            amount,
+            amount.into(),
             &[&token_context.alice],
         )
         .await
@@ -784,7 +805,7 @@ async fn success_transfers_using_onchain_helper() {
         &mint_a,
         &destination_a_account,
         &authority_a.pubkey(),
-        amount,
+        amount.into(),
         |address| {
             token_a.get_account(address).map_ok_or_else(
                 |e| match e {
@@ -804,7 +825,7 @@ async fn success_transfers_using_onchain_helper() {
         &mint_b,
         &destination_b_account,
         &authority_b.pubkey(),
-        amount,
+        amount.into(),
         |address| {
             token_a.get_account(address).map_ok_or_else(
                 |e| match e {
@@ -867,7 +888,7 @@ async fn success_transfers_with_fee_using_onchain_helper() {
                     transfer_fee_config_authority: transfer_fee_config_authority.pubkey().into(),
                     withdraw_withheld_authority: withdraw_withheld_authority.pubkey().into(),
                     transfer_fee_basis_points,
-                    maximum_fee,
+                    maximum_fee: maximum_fee.into(),
                 },
             ],
             None,
@@ -895,7 +916,7 @@ async fn success_transfers_with_fee_using_onchain_helper() {
                     transfer_fee_config_authority: transfer_fee_config_authority.pubkey().into(),
                     withdraw_withheld_authority: withdraw_withheld_authority.pubkey().into(),
                     transfer_fee_basis_points,
-                    maximum_fee,
+                    maximum_fee: maximum_fee.into(),
                 },
             ],
             None,
@@ -928,7 +949,7 @@ async fn success_transfers_with_fee_using_onchain_helper() {
         &mint_a,
         &destination_a_account,
         &authority_a.pubkey(),
-        amount,
+        amount.into(),
         |address| {
             token_a.get_account(address).map_ok_or_else(
                 |e| match e {
@@ -948,7 +969,7 @@ async fn success_transfers_with_fee_using_onchain_helper() {
         &mint_b,
         &destination_b_account,
         &authority_b.pubkey(),
-        amount,
+        amount.into(),
         |address| {
             token_a.get_account(address).map_ok_or_else(
                 |e| match e {
@@ -997,7 +1018,7 @@ async fn success_confidential_transfer() {
         false,
         false,
         &mint_authority,
-        amount,
+        amount.into(),
         decimals,
     )
     .await;
@@ -1077,8 +1098,12 @@ async fn success_without_validation_account() {
     let authority = Pubkey::new_unique();
     let program_id = Pubkey::new_unique();
     let mint = Keypair::new();
-    let mut program_test = ProgramTest::default();
-    program_test.add_program("spl_token_2022", spl_token_2022_interface::id(), None);
+    let mut program_test = ProgramTest::new(
+        "spl_token_2022",
+        spl_token_2022_interface::id(),
+        None,
+    );
+    program_test.prefer_bpf(true);
     program_test.add_program("spl_transfer_hook_example_success", program_id, None);
     let context = program_test.start_with_context().await;
     let context = Arc::new(tokio::sync::Mutex::new(context));
@@ -1112,7 +1137,7 @@ async fn success_without_validation_account() {
             &alice_account,
             &bob_account,
             &token_context.alice.pubkey(),
-            amount,
+            amount.into(),
             &[&token_context.alice],
         )
         .await

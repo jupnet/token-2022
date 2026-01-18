@@ -70,6 +70,7 @@ pub fn withdraw_proof_data(
 
     // Compute the remaining balance ciphertext
     #[allow(clippy::arithmetic_side_effects)]
+    #[allow(deprecated)]
     let remaining_balance_ciphertext = current_available_balance - ElGamal::encode(withdraw_amount);
 
     // Generate proof data

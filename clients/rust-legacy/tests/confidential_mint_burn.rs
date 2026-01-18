@@ -1,12 +1,14 @@
+#![allow(deprecated)]
 mod program_test;
 use {
+    jupnet_signer::signers::Signers,
     program_test::{ConfidentialTransferOption, TestContext, TokenContext},
     solana_program_test::tokio,
     solana_sdk::{
         instruction::InstructionError,
         pubkey::Pubkey,
         signature::Signer,
-        signer::{keypair::Keypair, signers::Signers},
+        signer::keypair::Keypair,
         transaction::TransactionError,
         transport::TransportError,
     },

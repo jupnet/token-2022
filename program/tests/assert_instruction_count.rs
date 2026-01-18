@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 mod action;
 use {
     solana_keypair::Keypair,
@@ -145,7 +147,7 @@ async fn mint_to() {
             &account.pubkey(),
             &owner.pubkey(),
             &[],
-            TRANSFER_AMOUNT,
+            TRANSFER_AMOUNT.into(),
         )
         .unwrap()],
         Some(&payer.pubkey()),

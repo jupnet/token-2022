@@ -39,12 +39,11 @@ const U16_BYTES: usize = 2;
 const U256_BYTES: usize = 32;
 
 /// Instructions supported by the token program.
+///
+/// Note: Serde serialization is not supported for this enum due to U256 fields
+/// lacking Serialize/Deserialize implementations. Individual instruction data
+/// types that don't contain U256 can still be serialized.
 #[repr(C)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(rename_all_fields = "camelCase", rename_all = "camelCase")
-)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum TokenInstruction<'a> {
     // 0
@@ -2130,7 +2129,10 @@ mod test {
         #[allow(deprecated)]
         let check = TokenInstruction::Transfer { amount };
         let packed = check.pack();
-        let expect = Vec::from([3u8, 1, 0, 0, 0, 0, 0, 0, 0]);
+        let expect = Vec::from([
+            3u8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+        ]);
         assert_eq!(packed, expect);
         let unpacked = TokenInstruction::unpack(&expect).unwrap();
         assert_eq!(unpacked, check);
@@ -2141,7 +2143,10 @@ mod test {
         let amount = U256::new(1);
         let check = TokenInstruction::Approve { amount };
         let packed = check.pack();
-        let expect = Vec::from([4u8, 1, 0, 0, 0, 0, 0, 0, 0]);
+        let expect = Vec::from([
+            4u8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+        ]);
         assert_eq!(packed, expect);
         let unpacked = TokenInstruction::unpack(&expect).unwrap();
         assert_eq!(unpacked, check);
@@ -2179,7 +2184,10 @@ mod test {
         let amount = U256::new(1);
         let check = TokenInstruction::MintTo { amount };
         let packed = check.pack();
-        let expect = Vec::from([7u8, 1, 0, 0, 0, 0, 0, 0, 0]);
+        let expect = Vec::from([
+            7u8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+        ]);
         assert_eq!(packed, expect);
         let unpacked = TokenInstruction::unpack(&expect).unwrap();
         assert_eq!(unpacked, check);
@@ -2190,7 +2198,10 @@ mod test {
         let amount = U256::new(1);
         let check = TokenInstruction::Burn { amount };
         let packed = check.pack();
-        let expect = Vec::from([8u8, 1, 0, 0, 0, 0, 0, 0, 0]);
+        let expect = Vec::from([
+            8u8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+        ]);
         assert_eq!(packed, expect);
         let unpacked = TokenInstruction::unpack(&expect).unwrap();
         assert_eq!(unpacked, check);
@@ -2232,7 +2243,10 @@ mod test {
         let decimals = 2;
         let check = TokenInstruction::TransferChecked { amount, decimals };
         let packed = check.pack();
-        let expect = Vec::from([12u8, 1, 0, 0, 0, 0, 0, 0, 0, 2]);
+        let expect = Vec::from([
+            12u8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 2,
+        ]);
         assert_eq!(packed, expect);
         let unpacked = TokenInstruction::unpack(&expect).unwrap();
         assert_eq!(unpacked, check);
@@ -2245,7 +2259,10 @@ mod test {
 
         let check = TokenInstruction::ApproveChecked { amount, decimals };
         let packed = check.pack();
-        let expect = Vec::from([13u8, 1, 0, 0, 0, 0, 0, 0, 0, 2]);
+        let expect = Vec::from([
+            13u8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 2,
+        ]);
         assert_eq!(packed, expect);
         let unpacked = TokenInstruction::unpack(&expect).unwrap();
         assert_eq!(unpacked, check);
@@ -2257,7 +2274,10 @@ mod test {
         let decimals = 2;
         let check = TokenInstruction::MintToChecked { amount, decimals };
         let packed = check.pack();
-        let expect = Vec::from([14u8, 1, 0, 0, 0, 0, 0, 0, 0, 2]);
+        let expect = Vec::from([
+            14u8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 2,
+        ]);
         assert_eq!(packed, expect);
         let unpacked = TokenInstruction::unpack(&expect).unwrap();
         assert_eq!(unpacked, check);
@@ -2269,7 +2289,10 @@ mod test {
         let decimals = 2;
         let check = TokenInstruction::BurnChecked { amount, decimals };
         let packed = check.pack();
-        let expect = Vec::from([15u8, 1, 0, 0, 0, 0, 0, 0, 0, 2]);
+        let expect = Vec::from([
+            15u8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 2,
+        ]);
         assert_eq!(packed, expect);
         let unpacked = TokenInstruction::unpack(&expect).unwrap();
         assert_eq!(unpacked, check);
@@ -2387,7 +2410,10 @@ mod test {
         let amount = U256::new(42);
         let check = TokenInstruction::AmountToUiAmount { amount };
         let packed = check.pack();
-        let expect = vec![23u8, 42, 0, 0, 0, 0, 0, 0, 0];
+        let expect = vec![
+            23u8, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+        ];
         assert_eq!(packed, expect);
         let unpacked = TokenInstruction::unpack(&expect).unwrap();
         assert_eq!(unpacked, check);

@@ -1,7 +1,9 @@
+#![allow(deprecated)]
 mod program_test;
 use {
     program_test::TestContext,
-    solana_program_test::{tokio, ProgramTest},
+    solana_program_test::{processor, tokio, ProgramTest},
+    spl_token_2022::processor::Processor,
     solana_sdk::{
         instruction::InstructionError, pubkey::Pubkey, signature::Signer, signer::keypair::Keypair,
         transaction::TransactionError, transport::TransportError,
@@ -14,9 +16,12 @@ use {
 };
 
 fn setup_program_test() -> ProgramTest {
-    let mut program_test = ProgramTest::default();
-    program_test.add_program("spl_token_2022", spl_token_2022_interface::id(), None);
-    program_test
+    // Use native processor instead of embedded old BPF binary which doesn't support U256
+    ProgramTest::new(
+        "spl_token_2022",
+        spl_token_2022_interface::id(),
+        processor!(Processor::process),
+    )
 }
 
 async fn setup(mint: Keypair, authority: &Pubkey) -> TestContext {

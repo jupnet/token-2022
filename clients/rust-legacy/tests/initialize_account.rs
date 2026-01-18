@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 mod program_test;
 use {
     program_test::TestContext,
@@ -184,7 +185,7 @@ async fn single_extension() {
             None,
             None,
             10,
-            4242,
+            4242u64.into(),
         )
         .unwrap(),
         instruction::initialize_mint(

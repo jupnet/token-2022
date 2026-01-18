@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 mod program_test;
 use {
     program_test::{TestContext, TokenContext},
@@ -37,7 +38,7 @@ async fn setup_accounts(token_context: &TokenContext, amount: u64) -> (Pubkey, P
         .mint_to(
             &alice_account,
             &token_context.mint_authority.pubkey(),
-            amount,
+            amount.into(),
             &[&token_context.mint_authority],
         )
         .await
@@ -167,7 +168,7 @@ async fn set_authority() {
             &alice_account,
             &bob_account,
             &new_delegate.pubkey(),
-            amount,
+            amount.into(),
             &[&new_delegate],
         )
         .await
@@ -204,7 +205,7 @@ async fn success_transfer() {
             &alice_account,
             &bob_account,
             &delegate.pubkey(),
-            amount,
+            amount.into(),
             &[&delegate],
         )
         .await

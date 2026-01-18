@@ -1,5 +1,7 @@
+#![allow(deprecated)]
 mod program_test;
 use {
+    ethnum::U256,
     program_test::{TestContext, TokenContext},
     solana_program_test::tokio,
     solana_sdk::{
@@ -104,7 +106,7 @@ async fn create_mint_with_accounts(alice_amount: u64) -> TokenWithAccounts {
             transfer_fee_config_authority: transfer_fee_config_authority.pubkey().into(),
             withdraw_withheld_authority: withdraw_withheld_authority.pubkey().into(),
             transfer_fee_basis_points,
-            maximum_fee,
+            maximum_fee: maximum_fee.into(),
         }])
         .await
         .unwrap();
@@ -136,7 +138,7 @@ async fn create_mint_with_accounts(alice_amount: u64) -> TokenWithAccounts {
         .mint_to(
             &alice_account,
             &mint_authority.pubkey(),
-            alice_amount,
+            alice_amount.into(),
             &[&mint_authority],
         )
         .await
@@ -301,7 +303,7 @@ async fn set_fee() {
         .set_transfer_fee(
             &transfer_fee_config_authority.pubkey(),
             new_transfer_fee_basis_points,
-            new_maximum_fee,
+            new_maximum_fee.into(),
             &[&transfer_fee_config_authority],
         )
         .await
@@ -325,7 +327,7 @@ async fn set_fee() {
         .set_transfer_fee(
             &transfer_fee_config_authority.pubkey(),
             new_transfer_fee_basis_points,
-            new_maximum_fee,
+            new_maximum_fee.into(),
             &[&transfer_fee_config_authority],
         )
         .await
@@ -355,7 +357,7 @@ async fn set_fee() {
         .set_transfer_fee(
             &transfer_fee_config_authority.pubkey(),
             new_transfer_fee_basis_points,
-            new_maximum_fee,
+            new_maximum_fee.into(),
             &[&transfer_fee_config_authority],
         )
         .await
@@ -386,7 +388,7 @@ async fn set_fee() {
         .set_transfer_fee(
             &transfer_fee_config_authority.pubkey(),
             new_transfer_fee_basis_points,
-            new_maximum_fee,
+            new_maximum_fee.into(),
             &[&transfer_fee_config_authority],
         )
         .await
@@ -408,7 +410,7 @@ async fn set_fee() {
         .set_transfer_fee(
             &withdraw_withheld_authority.pubkey(),
             new_transfer_fee_basis_points,
-            new_maximum_fee,
+            new_maximum_fee.into(),
             &[&withdraw_withheld_authority],
         )
         .await
@@ -429,7 +431,7 @@ async fn set_fee() {
         .set_transfer_fee(
             &transfer_fee_config_authority.pubkey(),
             MAX_FEE_BASIS_POINTS + 1,
-            new_maximum_fee,
+            new_maximum_fee.into(),
             &[&transfer_fee_config_authority],
         )
         .await
@@ -461,7 +463,7 @@ async fn fail_unsupported_mint() {
         .set_transfer_fee(
             &mint_authority.pubkey(),
             transfer_fee_basis_points,
-            maximum_fee,
+            maximum_fee.into(),
             &[&mint_authority],
         )
         .await
@@ -572,7 +574,7 @@ async fn set_transfer_fee_config_authority() {
         .set_transfer_fee(
             &transfer_fee_config_authority.pubkey(),
             transfer_fee_basis_points,
-            maximum_fee,
+            maximum_fee.into(),
             &[&transfer_fee_config_authority],
         )
         .await
@@ -590,7 +592,7 @@ async fn set_transfer_fee_config_authority() {
         .set_transfer_fee(
             &new_authority.pubkey(),
             transfer_fee_basis_points,
-            maximum_fee,
+            maximum_fee.into(),
             &[&new_authority],
         )
         .await
@@ -640,7 +642,7 @@ async fn set_transfer_fee_config_authority() {
         .set_transfer_fee(
             &transfer_fee_config_authority.pubkey(),
             0,
-            0,
+            0u64.into(),
             &[&transfer_fee_config_authority],
         )
         .await
@@ -860,7 +862,7 @@ async fn transfer_checked() {
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            maximum_fee,
+            maximum_fee.into(),
             &[&alice],
         )
         .await
@@ -881,7 +883,7 @@ async fn transfer_checked() {
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            alice_amount + 1,
+            (alice_amount + 1).into(),
             &[&alice],
         )
         .await
@@ -901,21 +903,21 @@ async fn transfer_checked() {
 
     // success, clean calculation for transfer fee
     let fee = transfer_fee_config
-        .calculate_epoch_fee(0, maximum_fee)
+        .calculate_epoch_fee(0, maximum_fee.into())
         .unwrap();
     token
         .transfer(
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            maximum_fee,
+            maximum_fee.into(),
             &[&alice],
         )
         .await
         .unwrap();
     alice_amount -= maximum_fee;
-    withheld_amount += fee;
-    transferred_amount += maximum_fee - fee;
+    withheld_amount += u64::try_from(fee).unwrap();
+    transferred_amount += maximum_fee - u64::try_from(fee).unwrap();
 
     let alice_state = token.get_account_info(&alice_account).await.unwrap();
     assert_eq!(alice_state.base.amount, alice_amount);
@@ -929,21 +931,21 @@ async fn transfer_checked() {
     // success, rounded up transfer fee
     let transfer_amount = maximum_fee - 1;
     let fee = transfer_fee_config
-        .calculate_epoch_fee(0, transfer_amount)
+        .calculate_epoch_fee(0, transfer_amount.into())
         .unwrap();
     token
         .transfer(
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            transfer_amount,
+            transfer_amount.into(),
             &[&alice],
         )
         .await
         .unwrap();
     alice_amount -= transfer_amount;
-    withheld_amount += fee;
-    transferred_amount += transfer_amount - fee;
+    withheld_amount += u64::try_from(fee).unwrap();
+    transferred_amount += transfer_amount - u64::try_from(fee).unwrap();
     let alice_state = token.get_account_info(&alice_account).await.unwrap();
     assert_eq!(alice_state.base.amount, alice_amount);
     let extension = alice_state.get_extension::<TransferFeeAmount>().unwrap();
@@ -961,22 +963,22 @@ async fn transfer_checked() {
                 .transfer_fee_basis_points,
         ) as u64);
     let fee = transfer_fee_config
-        .calculate_epoch_fee(0, transfer_amount)
+        .calculate_epoch_fee(0, transfer_amount.into())
         .unwrap();
-    assert_eq!(fee, maximum_fee); // sanity
+    assert_eq!(fee, ethnum::U256::from(maximum_fee)); // sanity
     token
         .transfer(
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            transfer_amount,
+            transfer_amount.into(),
             &[&alice],
         )
         .await
         .unwrap();
     alice_amount -= transfer_amount;
-    withheld_amount += fee;
-    transferred_amount += transfer_amount - fee;
+    withheld_amount += u64::try_from(fee).unwrap();
+    transferred_amount += transfer_amount - u64::try_from(fee).unwrap();
     let alice_state = token.get_account_info(&alice_account).await.unwrap();
     assert_eq!(alice_state.base.amount, alice_amount);
     let extension = alice_state.get_extension::<TransferFeeAmount>().unwrap();
@@ -992,7 +994,7 @@ async fn transfer_checked() {
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            alice_amount - 1,
+            (alice_amount - 1).into(),
             &[&alice],
         )
         .await
@@ -1011,7 +1013,7 @@ async fn transfer_checked() {
 
     // final transfer, only move tokens to withheld amount, nothing received
     token
-        .transfer(&alice_account, &bob_account, &alice.pubkey(), 1, &[&alice])
+        .transfer(&alice_account, &bob_account, &alice.pubkey(), 1u64.into(), &[&alice])
         .await
         .unwrap();
     withheld_amount += 1;
@@ -1041,7 +1043,7 @@ async fn transfer_checked_with_fee() {
     // incorrect fee, too high
     let transfer_amount = maximum_fee;
     let fee = transfer_fee_config
-        .calculate_epoch_fee(0, transfer_amount)
+        .calculate_epoch_fee(0, transfer_amount.into())
         .unwrap()
         + 1;
     let error = token
@@ -1049,7 +1051,7 @@ async fn transfer_checked_with_fee() {
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            transfer_amount,
+            transfer_amount.into(),
             fee,
             &[&alice],
         )
@@ -1067,7 +1069,7 @@ async fn transfer_checked_with_fee() {
 
     // incorrect fee, too low
     let fee = transfer_fee_config
-        .calculate_epoch_fee(0, transfer_amount)
+        .calculate_epoch_fee(0, transfer_amount.into())
         .unwrap()
         - 1;
     let error = token
@@ -1075,7 +1077,7 @@ async fn transfer_checked_with_fee() {
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            transfer_amount,
+            transfer_amount.into(),
             fee,
             &[&alice],
         )
@@ -1093,7 +1095,7 @@ async fn transfer_checked_with_fee() {
 
     // correct fee, not enough tokens
     let fee = transfer_fee_config
-        .calculate_epoch_fee(0, alice_amount + 1)
+        .calculate_epoch_fee(0, (alice_amount + 1).into())
         .unwrap()
         - 1;
     let error = token
@@ -1101,7 +1103,7 @@ async fn transfer_checked_with_fee() {
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            alice_amount + 1,
+            (alice_amount + 1).into(),
             fee,
             &[&alice],
         )
@@ -1119,14 +1121,14 @@ async fn transfer_checked_with_fee() {
 
     // correct fee
     let fee = transfer_fee_config
-        .calculate_epoch_fee(0, transfer_amount)
+        .calculate_epoch_fee(0, transfer_amount.into())
         .unwrap();
     token
         .transfer_with_fee(
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            transfer_amount,
+            transfer_amount.into(),
             fee,
             &[&alice],
         )
@@ -1137,7 +1139,7 @@ async fn transfer_checked_with_fee() {
     let extension = alice_state.get_extension::<TransferFeeAmount>().unwrap();
     assert_eq!(extension.withheld_amount, 0.into());
     let bob_state = token.get_account_info(&bob_account).await.unwrap();
-    assert_eq!(bob_state.base.amount, transfer_amount - fee);
+    assert_eq!(bob_state.base.amount, transfer_amount - u64::try_from(fee).unwrap());
     let extension = bob_state.get_extension::<TransferFeeAmount>().unwrap();
     assert_eq!(extension.withheld_amount, fee.into());
 }
@@ -1155,13 +1157,13 @@ async fn no_fees_from_self_transfer() {
     } = create_mint_with_accounts(alice_amount).await;
 
     // self transfer, no fee assessed
-    let fee = transfer_fee_config.calculate_epoch_fee(0, amount).unwrap();
+    let fee = transfer_fee_config.calculate_epoch_fee(0, amount.into()).unwrap();
     token
         .transfer_with_fee(
             &alice_account,
             &alice_account,
             &alice.pubkey(),
-            amount,
+            amount.into(),
             fee,
             &[&alice],
         )
@@ -1187,7 +1189,7 @@ async fn create_and_transfer_to_account(
         .unwrap();
     let account = account.pubkey();
     token
-        .transfer(source, &account, &authority.pubkey(), amount, &[authority])
+        .transfer(source, &account, &authority.pubkey(), amount.into(), &[authority])
         .await
         .unwrap();
     account
@@ -1213,7 +1215,7 @@ async fn harvest_withheld_tokens_to_mint() {
     assert_eq!(extension.withheld_amount, 0.into());
 
     // harvest from one account
-    let accumulated_fees = transfer_fee_config.calculate_epoch_fee(0, amount).unwrap();
+    let accumulated_fees = transfer_fee_config.calculate_epoch_fee(0, amount.into()).unwrap();
     let account =
         create_and_transfer_to_account(&token, &alice_account, &alice, &alice.pubkey(), amount)
             .await;
@@ -1238,7 +1240,7 @@ async fn harvest_withheld_tokens_to_mint() {
             transfer_fee_config_authority: Some(Pubkey::new_unique()),
             withdraw_withheld_authority: Some(Pubkey::new_unique()),
             transfer_fee_basis_points: TEST_FEE_BASIS_POINTS,
-            maximum_fee: TEST_MAXIMUM_FEE,
+            maximum_fee: TEST_MAXIMUM_FEE.into(),
         }])
         .await
         .unwrap();
@@ -1276,7 +1278,7 @@ async fn max_harvest_withheld_tokens_to_mint() {
     }
     let accounts: Vec<_> = accounts.iter().collect();
     let accumulated_fees =
-        max_accounts * transfer_fee_config.calculate_epoch_fee(0, amount).unwrap();
+        max_accounts * transfer_fee_config.calculate_epoch_fee(0, amount.into()).unwrap();
     token
         .harvest_withheld_tokens_to_mint(&accounts)
         .await
@@ -1323,7 +1325,7 @@ async fn max_withdraw_withheld_tokens_from_accounts() {
     }
     let accounts: Vec<_> = accounts.iter().collect();
     let accumulated_fees =
-        max_accounts * transfer_fee_config.calculate_epoch_fee(0, amount).unwrap();
+        max_accounts * transfer_fee_config.calculate_epoch_fee(0, amount.into()).unwrap();
     token
         .withdraw_withheld_tokens_from_accounts(
             &destination,
@@ -1339,7 +1341,7 @@ async fn max_withdraw_withheld_tokens_from_accounts() {
         assert_eq!(extension.withheld_amount, 0.into());
     }
     let state = token.get_account_info(&destination).await.unwrap();
-    assert_eq!(state.base.amount, accumulated_fees);
+    assert_eq!(state.base.amount, u64::try_from(accumulated_fees).unwrap());
 }
 
 #[tokio::test]
@@ -1376,7 +1378,7 @@ async fn withdraw_withheld_tokens_from_mint() {
     assert_eq!(extension.withheld_amount, 0.into());
 
     // transfer + harvest to mint
-    let fee = transfer_fee_config.calculate_epoch_fee(0, amount).unwrap();
+    let fee = transfer_fee_config.calculate_epoch_fee(0, amount.into()).unwrap();
     let account =
         create_and_transfer_to_account(&token, &alice_account, &alice, &alice.pubkey(), amount)
             .await;
@@ -1404,7 +1406,7 @@ async fn withdraw_withheld_tokens_from_mint() {
         .await
         .unwrap();
     let state = token.get_account_info(&bob_account).await.unwrap();
-    assert_eq!(state.base.amount, fee);
+    assert_eq!(state.base.amount, u64::try_from(fee).unwrap());
     let state = token.get_account_info(&account).await.unwrap();
     let extension = state.get_extension::<TransferFeeAmount>().unwrap();
     assert_eq!(extension.withheld_amount, 0.into());
@@ -1491,7 +1493,7 @@ async fn withdraw_withheld_tokens_from_mint() {
             transfer_fee_config_authority: Some(Pubkey::new_unique()),
             withdraw_withheld_authority: Some(withdraw_withheld_authority.pubkey()),
             transfer_fee_basis_points: TEST_FEE_BASIS_POINTS,
-            maximum_fee: TEST_MAXIMUM_FEE,
+            maximum_fee: TEST_MAXIMUM_FEE.into(),
         }])
         .await
         .unwrap();
@@ -1609,7 +1611,7 @@ async fn withdraw_withheld_tokens_from_accounts() {
             transfer_fee_config_authority: Some(Pubkey::new_unique()),
             withdraw_withheld_authority: Some(withdraw_withheld_authority.pubkey()),
             transfer_fee_basis_points: TEST_FEE_BASIS_POINTS,
-            maximum_fee: TEST_MAXIMUM_FEE,
+            maximum_fee: TEST_MAXIMUM_FEE.into(),
         }])
         .await
         .unwrap();
@@ -1672,13 +1674,15 @@ async fn fail_close_with_withheld() {
             .await;
 
     // empty the account
-    let fee = transfer_fee_config.calculate_epoch_fee(0, amount).unwrap();
+    let fee = transfer_fee_config
+        .calculate_epoch_fee(0, amount.into())
+        .unwrap();
     token
         .transfer(
             &account,
             &alice_account,
             &alice.pubkey(),
-            amount - fee,
+            (U256::from(amount) - fee).try_into().unwrap(),
             &[&alice],
         )
         .await

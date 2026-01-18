@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 mod program_test;
 use {
     program_test::{TestContext, TokenContext},
@@ -68,26 +69,26 @@ async fn run_basic(
     let bob_account = bob_account.pubkey();
 
     // mint tokens
-    let amount = 100;
+    let amount: u64 = 100;
     token
         .mint_to(
             &alice_account,
             &mint_authority.pubkey(),
-            amount,
+            amount.into(),
             &[&mint_authority],
         )
         .await
         .unwrap();
 
     // delegate to bob
-    let delegated_amount = 10;
+    let delegated_amount: u64 = 10;
     match approve_mode {
         ApproveMode::Unchecked => token_unchecked
             .approve(
                 &alice_account,
                 &bob.pubkey(),
                 &alice.pubkey(),
-                delegated_amount,
+                delegated_amount.into(),
                 &[&alice],
             )
             .await
@@ -97,7 +98,7 @@ async fn run_basic(
                 &alice_account,
                 &bob.pubkey(),
                 &alice.pubkey(),
-                delegated_amount,
+                delegated_amount.into(),
                 &[&alice],
             )
             .await
@@ -110,7 +111,7 @@ async fn run_basic(
             &alice_account,
             &bob_account,
             &bob.pubkey(),
-            delegated_amount.checked_add(1).unwrap(),
+            (delegated_amount + 1).into(),
             &[&bob],
         )
         .await
@@ -128,23 +129,23 @@ async fn run_basic(
     // transfer is ok
     if transfer_mode == TransferMode::All {
         token_unchecked
-            .transfer(&alice_account, &bob_account, &bob.pubkey(), 1, &[&bob])
+            .transfer(&alice_account, &bob_account, &bob.pubkey(), 1u64.into(), &[&bob])
             .await
             .unwrap();
     }
 
     token
-        .transfer(&alice_account, &bob_account, &bob.pubkey(), 1, &[&bob])
+        .transfer(&alice_account, &bob_account, &bob.pubkey(), 1u64.into(), &[&bob])
         .await
         .unwrap();
 
     // burn is ok
     token_unchecked
-        .burn(&alice_account, &bob.pubkey(), 1, &[&bob])
+        .burn(&alice_account, &bob.pubkey(), 1u64.into(), &[&bob])
         .await
         .unwrap();
     token
-        .burn(&alice_account, &bob.pubkey(), 1, &[&bob])
+        .burn(&alice_account, &bob.pubkey(), 1u64.into(), &[&bob])
         .await
         .unwrap();
 
@@ -155,7 +156,7 @@ async fn run_basic(
             &alice_account,
             &bob_account,
             &keypair.pubkey(),
-            1,
+            1u64.into(),
             &[keypair],
         )
         .await
@@ -178,7 +179,7 @@ async fn run_basic(
 
     // now fails
     let error = token
-        .transfer(&alice_account, &bob_account, &bob.pubkey(), 2, &[&bob])
+        .transfer(&alice_account, &bob_account, &bob.pubkey(), 2u64.into(), &[&bob])
         .await
         .unwrap_err();
     assert_eq!(
@@ -239,7 +240,7 @@ async fn basic_with_extension() {
             transfer_fee_config_authority: Some(Pubkey::new_unique()),
             withdraw_withheld_authority: Some(Pubkey::new_unique()),
             transfer_fee_basis_points: 100u16,
-            maximum_fee: 1_000u64,
+            maximum_fee: 1_000u64.into(),
         }])
         .await
         .unwrap();
@@ -260,7 +261,7 @@ async fn basic_with_extension_checked() {
             transfer_fee_config_authority: Some(Pubkey::new_unique()),
             withdraw_withheld_authority: Some(Pubkey::new_unique()),
             transfer_fee_basis_points: 100u16,
-            maximum_fee: 1_000u64,
+            maximum_fee: 1_000u64.into(),
         }])
         .await
         .unwrap();
@@ -281,7 +282,7 @@ async fn basic_self_owned_with_extension() {
             transfer_fee_config_authority: Some(Pubkey::new_unique()),
             withdraw_withheld_authority: Some(Pubkey::new_unique()),
             transfer_fee_basis_points: 100u16,
-            maximum_fee: 1_000u64,
+            maximum_fee: 1_000u64.into(),
         }])
         .await
         .unwrap();

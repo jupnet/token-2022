@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 mod program_test;
 use {
     program_test::{TestContext, TokenContext},
@@ -138,12 +139,12 @@ async fn pause_mint() {
         .await
         .unwrap();
 
-    let amount = 10;
+    let amount: u64 = 10;
     let error = token
         .mint_to(
             &alice_account,
             &mint_authority.pubkey(),
-            amount,
+            amount.into(),
             &[&mint_authority],
         )
         .await
@@ -162,7 +163,7 @@ async fn pause_mint() {
         .mint_to(
             &alice_account,
             &mint_authority.pubkey(),
-            amount,
+            amount.into(),
             &[&mint_authority],
         )
         .await
@@ -203,12 +204,12 @@ async fn pause_burn() {
         .unwrap();
     let alice_account = alice_account.pubkey();
 
-    let amount = 10;
+    let amount: u64 = 10;
     token
         .mint_to(
             &alice_account,
             &mint_authority.pubkey(),
-            amount,
+            amount.into(),
             &[&mint_authority],
         )
         .await
@@ -220,7 +221,7 @@ async fn pause_burn() {
         .unwrap();
 
     let error = token_unchecked
-        .burn(&alice_account, &alice.pubkey(), 1, &[&alice])
+        .burn(&alice_account, &alice.pubkey(), 1u64.into(), &[&alice])
         .await
         .unwrap_err();
 
@@ -235,7 +236,7 @@ async fn pause_burn() {
     );
 
     let error = token
-        .burn(&alice_account, &alice.pubkey(), 1, &[&alice])
+        .burn(&alice_account, &alice.pubkey(), 1u64.into(), &[&alice])
         .await
         .unwrap_err();
 
@@ -283,12 +284,12 @@ async fn pause_transfer() {
         .unwrap();
     let bob_account = bob_account.pubkey();
 
-    let amount = 10;
+    let amount: u64 = 10;
     token
         .mint_to(
             &alice_account,
             &mint_authority.pubkey(),
-            amount,
+            amount.into(),
             &[&mint_authority],
         )
         .await
@@ -300,7 +301,7 @@ async fn pause_transfer() {
         .unwrap();
 
     let error = token_unchecked
-        .transfer(&alice_account, &bob_account, &alice.pubkey(), 1, &[&alice])
+        .transfer(&alice_account, &bob_account, &alice.pubkey(), 1u64.into(), &[&alice])
         .await
         .unwrap_err();
 
@@ -316,7 +317,7 @@ async fn pause_transfer() {
     );
 
     let error = token
-        .transfer(&alice_account, &bob_account, &alice.pubkey(), 1, &[&alice])
+        .transfer(&alice_account, &bob_account, &alice.pubkey(), 1u64.into(), &[&alice])
         .await
         .unwrap_err();
 
@@ -335,8 +336,8 @@ async fn pause_transfer() {
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            1,
-            0,
+            1u64.into(),
+            0u64.into(),
             &[&alice],
         )
         .await

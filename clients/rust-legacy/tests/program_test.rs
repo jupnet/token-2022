@@ -1,11 +1,14 @@
+#![allow(deprecated)]
 #![allow(dead_code)]
 
 use {
-    solana_program_test::{tokio::sync::Mutex, ProgramTest, ProgramTestContext},
+    jupnet_signer::{ArcSigner, Signer as JupnetSigner},
+    solana_program_test::{processor, tokio::sync::Mutex, ProgramTest, ProgramTestContext},
     solana_sdk::{
         pubkey::Pubkey,
         signer::{keypair::Keypair, Signer},
     },
+    spl_token_2022::processor::Processor,
     spl_token_2022_interface::{
         extension::{
             confidential_transfer::ConfidentialTransferAccount, BaseStateWithExtensions,
@@ -41,7 +44,14 @@ pub struct TestContext {
 
 impl TestContext {
     pub async fn new() -> Self {
-        let mut program_test = ProgramTest::new("spl_token_2022", id(), None);
+        // Use native processor instead of embedded old BPF binary which doesn't support U256
+        let mut program_test = ProgramTest::new(
+            "spl_token_2022",
+            id(),
+            processor!(Processor::process),
+        );
+        // Enable prefer_bpf so auxiliary programs can load from BPF files in fixtures
+        program_test.prefer_bpf(true);
         program_test.add_program("spl_record", spl_record::id(), None);
         program_test.add_program("spl_elgamal_registry", spl_elgamal_registry::id(), None);
         let context = program_test.start_with_context().await;
@@ -103,26 +113,26 @@ impl TestContext {
         let decimals: u8 = 9;
 
         let mint_authority = Keypair::new();
-        let mint_authority_pubkey = mint_authority.pubkey();
+        let mint_authority_pubkey = Signer::pubkey(&mint_authority);
         let freeze_authority_pubkey = freeze_authority
             .as_ref()
-            .map(|authority| authority.pubkey());
+            .map(|authority| Signer::pubkey(authority));
 
         let token = Token::new(
             Arc::clone(&client),
             &id(),
-            &mint_account.pubkey(),
+            &Signer::pubkey(&mint_account),
             Some(decimals),
-            Arc::new(keypair_clone(&payer)),
+            ArcSigner(Arc::new(keypair_clone(&payer)) as Arc<dyn JupnetSigner>),
         )
         .with_compute_unit_limit(ComputeUnitLimit::Simulated);
 
         let token_unchecked = Token::new(
             Arc::clone(&client),
             &id(),
-            &mint_account.pubkey(),
+            &Signer::pubkey(&mint_account),
             None,
-            Arc::new(payer),
+            ArcSigner(Arc::new(payer) as Arc<dyn JupnetSigner>),
         )
         .with_compute_unit_limit(ComputeUnitLimit::Simulated);
 
@@ -131,7 +141,7 @@ impl TestContext {
                 &mint_authority_pubkey,
                 freeze_authority_pubkey.as_ref(),
                 extension_init_params,
-                &[&mint_account],
+                &[&mint_account as &dyn Signer],
             )
             .await?;
 
@@ -157,10 +167,10 @@ impl TestContext {
             ));
 
         let token =
-            Token::create_native_mint(Arc::clone(&client), &id(), Arc::new(keypair_clone(&payer)))
+            Token::create_native_mint(Arc::clone(&client), &id(), ArcSigner(Arc::new(keypair_clone(&payer)) as Arc<dyn JupnetSigner>))
                 .await?;
         // unchecked native is never needed because decimals is known statically
-        let token_unchecked = Token::new_native(Arc::clone(&client), &id(), Arc::new(payer))
+        let token_unchecked = Token::new_native(Arc::clone(&client), &id(), ArcSigner(Arc::new(payer) as Arc<dyn JupnetSigner>))
             .with_compute_unit_limit(ComputeUnitLimit::Simulated);
         self.token_context = Some(TokenContext {
             decimals: native_mint::DECIMALS,
@@ -209,12 +219,12 @@ impl ConfidentialTokenAccountMeta {
         token
             .create_auxiliary_token_account_with_extension_space(
                 &token_account_keypair,
-                &owner.pubkey(),
+                &Signer::pubkey(owner),
                 extensions,
             )
             .await
             .unwrap();
-        let token_account = token_account_keypair.pubkey();
+        let token_account = Signer::pubkey(&token_account_keypair);
 
         let elgamal_keypair =
             ElGamalKeypair::new_from_signer(owner, &token_account.to_bytes()).unwrap();
@@ -223,19 +233,19 @@ impl ConfidentialTokenAccountMeta {
         token
             .confidential_transfer_configure_token_account(
                 &token_account,
-                &owner.pubkey(),
+                &Signer::pubkey(owner),
                 None,
                 maximum_pending_balance_credit_counter,
                 &elgamal_keypair,
                 &aes_key,
-                &[owner],
+                &[owner as &dyn Signer],
             )
             .await
             .unwrap();
 
         if require_memo {
             token
-                .enable_required_transfer_memos(&token_account, &owner.pubkey(), &[owner])
+                .enable_required_transfer_memos(&token_account, &Signer::pubkey(owner), &[owner as &dyn Signer])
                 .await
                 .unwrap();
         }
@@ -273,9 +283,9 @@ impl ConfidentialTokenAccountMeta {
         token
             .mint_to(
                 &meta.token_account,
-                &mint_authority.pubkey(),
-                amount,
-                &[mint_authority],
+                &Signer::pubkey(mint_authority),
+                amount.into(),
+                &[mint_authority as &dyn Signer],
             )
             .await
             .unwrap();
@@ -283,10 +293,10 @@ impl ConfidentialTokenAccountMeta {
         token
             .confidential_transfer_deposit(
                 &meta.token_account,
-                &owner.pubkey(),
+                &Signer::pubkey(owner),
                 amount,
                 decimals,
-                &[owner],
+                &[owner as &dyn Signer],
             )
             .await
             .unwrap();
@@ -294,11 +304,11 @@ impl ConfidentialTokenAccountMeta {
         token
             .confidential_transfer_apply_pending_balance(
                 &meta.token_account,
-                &owner.pubkey(),
+                &Signer::pubkey(owner),
                 None,
                 meta.elgamal_keypair.secret(),
                 &meta.aes_key,
-                &[owner],
+                &[owner as &dyn Signer],
             )
             .await
             .unwrap();

@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 mod program_test;
 use {
     program_test::{TestContext, TokenContext},

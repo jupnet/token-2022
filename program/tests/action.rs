@@ -85,10 +85,15 @@ pub async fn mint_to(
     amount: u64,
 ) -> Result<(), TransportError> {
     let transaction = Transaction::new_signed_with_payer(
-        &[
-            instruction::mint_to(&id(), mint, account, &mint_authority.pubkey(), &[], amount)
-                .unwrap(),
-        ],
+        &[instruction::mint_to(
+            &id(),
+            mint,
+            account,
+            &mint_authority.pubkey(),
+            &[],
+            amount.into(),
+        )
+        .unwrap()],
         Some(&payer.pubkey()),
         &[payer, mint_authority],
         recent_blockhash,
@@ -108,10 +113,15 @@ pub async fn transfer(
     amount: u64,
 ) -> Result<(), TransportError> {
     let transaction = Transaction::new_signed_with_payer(
-        &[
-            instruction::transfer(&id(), source, destination, &authority.pubkey(), &[], amount)
-                .unwrap(),
-        ],
+        &[instruction::transfer(
+            &id(),
+            source,
+            destination,
+            &authority.pubkey(),
+            &[],
+            amount.into(),
+        )
+        .unwrap()],
         Some(&payer.pubkey()),
         &[payer, authority],
         recent_blockhash,
@@ -140,7 +150,7 @@ pub async fn transfer_checked(
             destination,
             &authority.pubkey(),
             &[],
-            amount,
+            amount.into(),
             decimals,
         )
         .unwrap()],
@@ -162,7 +172,15 @@ pub async fn burn(
     amount: u64,
 ) -> Result<(), TransportError> {
     let transaction = Transaction::new_signed_with_payer(
-        &[instruction::burn(&id(), account, mint, &authority.pubkey(), &[], amount).unwrap()],
+        &[instruction::burn(
+            &id(),
+            account,
+            mint,
+            &authority.pubkey(),
+            &[],
+            amount.into(),
+        )
+        .unwrap()],
         Some(&payer.pubkey()),
         &[payer, authority],
         recent_blockhash,

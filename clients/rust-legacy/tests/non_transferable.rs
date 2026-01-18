@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 mod program_test;
 use {
     program_test::{TestContext, TokenContext},
@@ -64,7 +65,7 @@ async fn transfer() {
         .mint_to(
             &alice_account,
             &mint_authority.pubkey(),
-            test_transfer_amount,
+            (test_transfer_amount as u64).into(),
             &[&mint_authority],
         )
         .await
@@ -74,7 +75,7 @@ async fn transfer() {
         .mint_to(
             &bob_account,
             &mint_authority.pubkey(),
-            test_transfer_amount,
+            (test_transfer_amount as u64).into(),
             &[&mint_authority],
         )
         .await
@@ -86,7 +87,7 @@ async fn transfer() {
             &bob_account,
             &bob_account,
             &bob.pubkey(),
-            test_transfer_amount,
+            (test_transfer_amount as u64).into(),
             &[&bob],
         )
         .await
@@ -108,7 +109,7 @@ async fn transfer() {
             &bob_account,
             &alice_account,
             &bob.pubkey(),
-            test_transfer_amount,
+            (test_transfer_amount as u64).into(),
             &[&bob],
         )
         .await
@@ -130,7 +131,7 @@ async fn transfer() {
             &bob_account,
             &alice_account,
             &bob.pubkey(),
-            test_transfer_amount,
+            (test_transfer_amount as u64).into(),
             &[&bob],
         )
         .await
@@ -169,7 +170,7 @@ async fn transfer_checked_with_fee() {
                 transfer_fee_config_authority: transfer_fee_config_authority.pubkey().into(),
                 withdraw_withheld_authority: withdraw_withheld_authority.pubkey().into(),
                 transfer_fee_basis_points,
-                maximum_fee,
+                maximum_fee: maximum_fee.into(),
             },
             ExtensionInitializationParams::NonTransferable,
         ])
@@ -210,7 +211,7 @@ async fn transfer_checked_with_fee() {
         .mint_to(
             &alice_account,
             &mint_authority.pubkey(),
-            test_transfer_amount,
+            (test_transfer_amount as u64).into(),
             &[&mint_authority],
         )
         .await
@@ -222,7 +223,7 @@ async fn transfer_checked_with_fee() {
             &alice_account,
             &alice_account,
             &alice.pubkey(),
-            test_transfer_amount,
+            (test_transfer_amount as u64).into(),
             &[&alice],
         )
         .await
@@ -244,7 +245,7 @@ async fn transfer_checked_with_fee() {
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            test_transfer_amount,
+            (test_transfer_amount as u64).into(),
             &[&alice],
         )
         .await
@@ -266,7 +267,7 @@ async fn transfer_checked_with_fee() {
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            test_transfer_amount,
+            (test_transfer_amount as u64).into(),
             &[&alice],
         )
         .await
@@ -283,13 +284,13 @@ async fn transfer_checked_with_fee() {
     );
 
     // self-transfer checked with fee fails
-    let fee = transfer_fee.calculate_fee(test_transfer_amount).unwrap();
+    let fee = transfer_fee.calculate_fee((test_transfer_amount as u64).into()).unwrap();
     let error = token
         .transfer_with_fee(
             &alice_account,
             &alice_account,
             &alice.pubkey(),
-            test_transfer_amount,
+            (test_transfer_amount as u64).into(),
             fee,
             &[&alice],
         )
@@ -307,13 +308,13 @@ async fn transfer_checked_with_fee() {
     );
 
     // transfer checked with fee fails
-    let fee = transfer_fee.calculate_fee(test_transfer_amount).unwrap();
+    let fee = transfer_fee.calculate_fee((test_transfer_amount as u64).into()).unwrap();
     let error = token
         .transfer_with_fee(
             &alice_account,
             &bob_account,
             &alice.pubkey(),
-            test_transfer_amount,
+            (test_transfer_amount as u64).into(),
             fee,
             &[&alice],
         )

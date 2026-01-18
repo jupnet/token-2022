@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 mod program_test;
 use {
     program_test::{TestContext, TokenContext},
@@ -258,7 +259,7 @@ async fn fail_close_with_supply() {
         .unwrap();
     let account = account.pubkey();
     token
-        .mint_to(&account, &mint_authority.pubkey(), 1, &[&mint_authority])
+        .mint_to(&account, &mint_authority.pubkey(), 1u64.into(), &[&mint_authority])
         .await
         .unwrap();
 

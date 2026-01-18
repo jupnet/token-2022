@@ -6,6 +6,7 @@ use {
     ethnum::U256,
     futures::future::join_all,
     futures_util::TryFutureExt,
+    jupnet_signer::{signers::Signers, ArcSigner, Signer, SignerError},
     solana_account::Account as BaseAccount,
     solana_compute_budget_interface::ComputeBudgetInstruction,
     solana_hash::Hash,
@@ -16,7 +17,6 @@ use {
     solana_program_pack::Pack,
     solana_pubkey::Pubkey,
     solana_signature::Signature,
-    jupnet_signer::{signers::Signers, ArcSigner, SignerError, Signer},
     solana_system_interface::instruction as system_instruction,
     solana_transaction::Transaction,
     spl_associated_token_account_interface::{
@@ -273,7 +273,7 @@ impl ExtensionInitializationParams {
                 transfer_fee_config_authority.as_ref(),
                 withdraw_withheld_authority.as_ref(),
                 transfer_fee_basis_points,
-                maximum_fee.into(),
+                maximum_fee,
             ),
             Self::InterestBearingConfig {
                 rate_authority,
@@ -429,19 +429,19 @@ impl<T> fmt::Debug for Token<T> {
 }
 
 fn native_mint(program_id: &Pubkey) -> Pubkey {
-    if program_id == &spl_token_2022_interface::id() {
-        spl_token_2022_interface::native_mint::id()
-    } else if program_id == &spl_token_interface::id() {
-        spl_token_interface::native_mint::id()
+    if program_id == &Pubkey::from(spl_token_2022_interface::id().to_bytes()) {
+        Pubkey::from(spl_token_2022_interface::native_mint::id().to_bytes())
+    } else if program_id == &Pubkey::from(spl_token_interface::id().to_bytes()) {
+        Pubkey::from(spl_token_interface::native_mint::id().to_bytes())
     } else {
         panic!("Unrecognized token program id: {}", program_id);
     }
 }
 
 fn native_mint_decimals(program_id: &Pubkey) -> u8 {
-    if program_id == &spl_token_2022_interface::id() {
+    if program_id == &Pubkey::from(spl_token_2022_interface::id().to_bytes()) {
         spl_token_2022_interface::native_mint::DECIMALS
-    } else if program_id == &spl_token_interface::id() {
+    } else if program_id == &Pubkey::from(spl_token_interface::id().to_bytes()) {
         spl_token_interface::native_mint::DECIMALS
     } else {
         panic!("Unrecognized token program id: {}", program_id);
@@ -1505,7 +1505,7 @@ where
         signing_keypairs: &S,
     ) -> TokenResult<T::Output> {
         // mutable owner for Tokenkeg, immutable otherwise
-        let immutable_owner = self.program_id != spl_token_interface::id();
+        let immutable_owner = self.program_id != Pubkey::from(spl_token_interface::id().to_bytes());
         let instructions = self.wrap_ixs(account, owner, lamports, immutable_owner)?;
 
         self.process_ixs(&instructions, signing_keypairs).await
@@ -2204,7 +2204,7 @@ where
                 &self.program_id,
                 account,
                 &self.pubkey,
-                amount.into(),
+                amount,
                 decimals,
                 authority,
                 &multisig_signers,
@@ -2530,7 +2530,10 @@ where
 
         let futures = ixs_batch
             .into_iter()
-            .map(|ixs| async move { self.process_ixs(&ixs, &[record_authority_signer as &dyn Signer]).await })
+            .map(|ixs| async move {
+                self.process_ixs(&ixs, &[record_authority_signer as &dyn Signer])
+                    .await
+            })
             .collect::<Vec<_>>();
 
         join_all(futures).await.into_iter().collect()
@@ -2772,7 +2775,7 @@ where
                     auditor_elgamal_pubkey,
                     withdraw_withheld_authority_elgamal_pubkey,
                     fee_rate_basis_points,
-                    maximum_fee.into(),
+                    maximum_fee,
                 )
                 .map_err(|_| TokenError::ProofGeneration)?;
 
@@ -4130,7 +4133,10 @@ where
     let ixs = create_record_instructions(first_instruction, &[], 0);
     let message = Message::new_with_blockhash(&ixs, Some(&Pubkey::default()), &Hash::default());
     let tx_size = bincode::serialized_size(&Transaction {
-        signatures: vec![Signature::default().into(); message.header.num_required_signatures as usize],
+        signatures: vec![
+            Signature::default().into();
+            message.header.num_required_signatures as usize
+        ],
         message,
     })
     .unwrap() as usize;

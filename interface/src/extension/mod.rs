@@ -48,6 +48,9 @@ use {
     },
 };
 
+#[cfg(test)]
+use {ethnum::U256, spl_pod::primitives::PodU256};
+
 /// Confidential Transfer extension
 pub mod confidential_transfer;
 /// Confidential Transfer Fee extension
@@ -1558,9 +1561,7 @@ mod test {
         },
         solana_pubkey::Pubkey,
         spl_pod::{
-            bytemuck::pod_bytes_of,
-            optional_keys::OptionalNonZeroPubkey,
-            primitives::{PodBool, PodU64},
+            bytemuck::pod_bytes_of, optional_keys::OptionalNonZeroPubkey, primitives::PodBool,
         },
         transfer_fee::test::test_transfer_fee_config,
     };
@@ -2198,7 +2199,7 @@ mod test {
             Err(ProgramError::InvalidAccountData),
         );
         // success write extension
-        let withheld_amount = PodU64::from(u64::MAX);
+        let withheld_amount = PodU256::from(u64::MAX);
         let extension = state.init_extension::<TransferFeeAmount>(true).unwrap();
         extension.withheld_amount = withheld_amount;
 
@@ -2225,7 +2226,7 @@ mod test {
         expect.push(AccountType::Account.into());
         expect.extend_from_slice(&(ExtensionType::TransferFeeAmount as u16).to_le_bytes());
         expect.extend_from_slice(&(pod_get_packed_len::<TransferFeeAmount>() as u16).to_le_bytes());
-        expect.extend_from_slice(&u64::from(withheld_amount).to_le_bytes());
+        expect.extend_from_slice(&U256::from(withheld_amount).to_le_bytes());
         assert_eq!(expect, buffer);
 
         // check unpacking
@@ -2245,7 +2246,7 @@ mod test {
         assert_eq!(*unpacked_extension, TransferFeeAmount { withheld_amount });
 
         // update extension
-        let withheld_amount = PodU64::from(u32::MAX as u64);
+        let withheld_amount = PodU256::from(u32::MAX as u64);
         unpacked_extension.withheld_amount = withheld_amount;
 
         // check updates are propagated
@@ -2261,7 +2262,7 @@ mod test {
         expect.push(AccountType::Account.into());
         expect.extend_from_slice(&(ExtensionType::TransferFeeAmount as u16).to_le_bytes());
         expect.extend_from_slice(&(pod_get_packed_len::<TransferFeeAmount>() as u16).to_le_bytes());
-        expect.extend_from_slice(&u64::from(withheld_amount).to_le_bytes());
+        expect.extend_from_slice(&U256::from(withheld_amount).to_le_bytes());
         assert_eq!(expect, buffer);
 
         // fail unpack as a mint

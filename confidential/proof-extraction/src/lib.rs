@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 pub mod burn;
 pub mod encryption;
 pub mod errors;

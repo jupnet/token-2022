@@ -458,7 +458,8 @@ impl Processor {
                     source_account.base.delegated_amount = delegated_amount
                         .checked_sub(amount)
                         .ok_or(TokenError::Overflow)?
-                        .into();
+                        .try_into()
+                        .map_err(|_| TokenError::Overflow)?;
                     if u64::from(source_account.base.delegated_amount) == 0 {
                         source_account.base.delegate = PodCOption::none();
                     }
@@ -515,20 +516,24 @@ impl Processor {
         source_account.base.amount = source_amount
             .checked_sub(amount)
             .ok_or(TokenError::Overflow)?
-            .into();
+            .try_into()
+            .map_err(|_| TokenError::Overflow)?;
         let credited_amount = amount
             .checked_sub(calculated_fee)
             .ok_or(TokenError::Overflow)?;
         destination_account.base.amount = U256::from(destination_account.base.amount)
             .checked_add(credited_amount)
             .ok_or(TokenError::Overflow)?
-            .into();
+            .try_into()
+            .map_err(|_| TokenError::Overflow)?;
         if calculated_fee > 0 {
             if let Ok(extension) = destination_account.get_extension_mut::<TransferFeeAmount>() {
                 let new_withheld_amount = U256::from(extension.withheld_amount)
                     .checked_add(calculated_fee)
                     .ok_or(TokenError::Overflow)?;
-                extension.withheld_amount = new_withheld_amount.into();
+                extension.withheld_amount = new_withheld_amount
+                    .try_into()
+                    .map_err(|_| TokenError::Overflow)?;
             } else {
                 // Use the generic error since this should never happen. If there's
                 // a fee, then the mint has a fee configured, which means all accounts
@@ -585,7 +590,7 @@ impl Processor {
     pub(crate) fn process_approve(
         program_id: &Pubkey,
         accounts: &[AccountInfo],
-        amount: u64,
+        amount: U256,
         instruction_variant: InstructionVariant,
     ) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
@@ -637,7 +642,7 @@ impl Processor {
         }
 
         source_account.base.delegate = PodCOption::some(*delegate_info.key);
-        source_account.base.delegated_amount = amount.into();
+        source_account.base.delegated_amount = amount.try_into().unwrap_or(u64::MAX).into();
 
         Ok(())
     }
@@ -984,7 +989,7 @@ impl Processor {
     pub(crate) fn process_mint_to(
         program_id: &Pubkey,
         accounts: &[AccountInfo],
-        amount: u64,
+        amount: U256,
         instruction_variant: InstructionVariant,
     ) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
@@ -1056,13 +1061,14 @@ impl Processor {
         check_program_account(mint_info.owner)?;
         check_program_account(destination_account_info.owner)?;
 
+        let amount_u64 = amount.try_into().unwrap_or(u64::MAX);
         destination_account.base.amount = u64::from(destination_account.base.amount)
-            .checked_add(amount)
+            .checked_add(amount_u64)
             .ok_or(TokenError::Overflow)?
             .into();
 
         mint.base.supply = u64::from(mint.base.supply)
-            .checked_add(amount)
+            .checked_add(amount_u64)
             .ok_or(TokenError::Overflow)?
             .into();
 
@@ -1073,9 +1079,10 @@ impl Processor {
     pub(crate) fn process_burn(
         program_id: &Pubkey,
         accounts: &[AccountInfo],
-        amount: u64,
+        amount: U256,
         instruction_variant: InstructionVariant,
     ) -> ProgramResult {
+        let amount = amount.try_into().unwrap_or(u64::MAX);
         let account_info_iter = &mut accounts.iter();
 
         let source_account_info = next_account_info(account_info_iter)?;
@@ -2040,9 +2047,10 @@ fn delete_account(account_info: &AccountInfo) -> Result<(), ProgramError> {
 mod tests {
     use {
         super::*,
-        num_traits::AsPrimitive,
         serial_test::serial,
-        solana_account::{create_is_signer_account_infos, Account as SolanaAccount},
+        solana_account::{
+            create_account_for_test, create_is_signer_account_infos, Account as SolanaAccount,
+        },
         solana_account_info::IntoAccountInfo,
         solana_clock::Clock,
         solana_instruction::Instruction,
@@ -7383,7 +7391,7 @@ mod tests {
             )
         );
         let account = Account::unpack_unchecked(&account_account.data).unwrap();
-        assert_eq!(account.amount, U256::MAX);
+        assert_eq!(account.amount, u64::MAX);
 
         // attempt to mint one more to the other account
         assert_eq!(

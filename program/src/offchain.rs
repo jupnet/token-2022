@@ -273,8 +273,8 @@ mod tests {
                     &[
                         Seed::InstructionData {
                             index: 8,
-                            length: 8,
-                        }, // amount
+                            length: 32,
+                        }, // amount (U256, 32 bytes starting after 8-byte discriminator)
                         Seed::AccountKey { index: 2 }, // destination
                         Seed::AccountKey { index: 5 }, // extra meta 1
                         Seed::AccountKey { index: 7 }, // extra meta 3 (PDA)

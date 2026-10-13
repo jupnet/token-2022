@@ -2,9 +2,13 @@
 //!
 //! The confidential transfer, confidential transfer fee and confidential
 //! mint-burn extensions are not supported on Jupnet: their instructions fail
-//! with [`TokenError::ConfidentialTransferDisabled`].
+//! with [`TokenError::ConfidentialTransferDisabled`]. The transfer fee,
+//! interest-bearing, scaled UI amount, permanent delegate and permissioned
+//! burn extensions are disabled as well: their instructions fail with
+//! [`TokenError::ExtensionDisabled`].
 //!
 //! [`TokenError::ConfidentialTransferDisabled`]: spl_token_2022_interface::error::TokenError::ConfidentialTransferDisabled
+//! [`TokenError::ExtensionDisabled`]: spl_token_2022_interface::error::TokenError::ExtensionDisabled
 
 /// CPI Guard extension
 pub mod cpi_guard;
@@ -16,8 +20,6 @@ pub mod group_member_pointer;
 pub mod group_pointer;
 /// Immutable Owner extension
 pub mod immutable_owner;
-/// Interest-Bearing Mint extension
-pub mod interest_bearing_mint;
 /// Memo Transfer extension
 pub mod memo_transfer;
 /// Metadata Pointer extension
@@ -28,20 +30,12 @@ pub mod mint_close_authority;
 pub mod non_transferable;
 /// Pausable extension
 pub mod pausable;
-/// Permanent Delegate extension
-pub mod permanent_delegate;
-/// Permissioned burn extension
-pub mod permissioned_burn;
 /// Utility to reallocate token accounts
 pub mod reallocate;
-/// Scaled UI Amount extension
-pub mod scaled_ui_amount;
 /// Token-group extension
 pub mod token_group;
 /// Token-metadata extension
 pub mod token_metadata;
-/// Transfer Fee extension
-pub mod transfer_fee;
 /// Transfer Hook extension
 pub mod transfer_hook;
 

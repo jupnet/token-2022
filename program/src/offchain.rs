@@ -8,7 +8,7 @@ use {
     solana_instruction::Instruction,
     solana_program_error::ProgramError,
     spl_token_2022_interface::{
-        extension::{transfer_fee, transfer_hook, StateWithExtensions},
+        extension::{transfer_hook, StateWithExtensions},
         state::Mint,
     },
     spl_transfer_hook_interface::offchain::add_extra_account_metas_for_execute,
@@ -62,72 +62,6 @@ where
         signer_pubkeys,
         amount,
         decimals,
-    )?;
-
-    add_extra_account_metas(
-        &mut transfer_instruction,
-        source_pubkey,
-        mint_pubkey,
-        destination_pubkey,
-        authority_pubkey,
-        amount,
-        fetch_account_data_fn,
-    )
-    .await?;
-
-    Ok(transfer_instruction)
-}
-
-/// Offchain helper to create a `TransferCheckedWithFee` instruction with all
-/// additional required account metas for a transfer, including the ones
-/// required by the transfer hook.
-///
-/// To be client-agnostic and to avoid pulling in the full solana-sdk, this
-/// simply takes a function that will return its data as `Future<Vec<u8>>` for
-/// the given address. Can be called in the following way:
-///
-/// ```rust,ignore
-/// let instruction = create_transfer_checked_with_fee_instruction_with_extra_metas(
-///     &spl_token_2022::id(),
-///     &source,
-///     &mint,
-///     &destination,
-///     &authority,
-///     &[],
-///     amount,
-///     decimals,
-///     fee,
-///     |address| self.client.get_account(&address).map_ok(|opt| opt.map(|acc| acc.data)),
-/// )
-/// .await?
-/// ```
-#[allow(clippy::too_many_arguments)]
-pub async fn create_transfer_checked_with_fee_instruction_with_extra_metas<F, Fut>(
-    token_program_id: &Address,
-    source_pubkey: &Address,
-    mint_pubkey: &Address,
-    destination_pubkey: &Address,
-    authority_pubkey: &Address,
-    signer_pubkeys: &[&Address],
-    amount: U256,
-    decimals: u8,
-    fee: U256,
-    fetch_account_data_fn: F,
-) -> Result<Instruction, AccountFetchError>
-where
-    F: Fn(Address) -> Fut,
-    Fut: Future<Output = AccountDataResult>,
-{
-    let mut transfer_instruction = transfer_fee::instruction::transfer_checked_with_fee(
-        token_program_id,
-        source_pubkey,
-        mint_pubkey,
-        destination_pubkey,
-        authority_pubkey,
-        signer_pubkeys,
-        amount,
-        decimals,
-        fee,
     )?;
 
     add_extra_account_metas(
@@ -366,106 +300,6 @@ mod tests {
             &[&signer_1, &signer_2, &signer_3],
             amount,
             DECIMALS,
-            mock_fetch_account_data_fn,
-        )
-        .await
-        .unwrap();
-
-        let check_metas = [
-            AccountMeta::new(source, false),
-            AccountMeta::new_readonly(MINT_PUBKEY, false),
-            AccountMeta::new(destination, false),
-            AccountMeta::new_readonly(authority, false), // False because of additional signers
-            AccountMeta::new_readonly(signer_1, true),
-            AccountMeta::new_readonly(signer_2, true),
-            AccountMeta::new_readonly(signer_3, true),
-            AccountMeta::new_readonly(EXTRA_META_1, false), // demoted
-            AccountMeta::new_readonly(EXTRA_META_2, false), // demoted
-            AccountMeta::new(extra_meta_3_pubkey, false),
-            AccountMeta::new(extra_meta_4_pubkey, false),
-            AccountMeta::new_readonly(TRANSFER_HOOK_PROGRAM_ID, false),
-            AccountMeta::new_readonly(validate_state_pubkey, false),
-        ];
-
-        assert_eq!(instruction.accounts, check_metas);
-    }
-
-    #[tokio::test]
-    async fn test_create_transfer_checked_with_fee_instruction_with_extra_metas() {
-        let source = Address::new_unique();
-        let destination = Address::new_unique();
-        let authority = Address::new_unique();
-        let amount = U256::new(100);
-        let fee = U256::new(1);
-        let hook_amount = amount_to_u64(amount).unwrap();
-
-        let validate_state_pubkey =
-            get_extra_account_metas_address(&MINT_PUBKEY, &TRANSFER_HOOK_PROGRAM_ID);
-        let extra_meta_3_pubkey = Address::find_program_address(
-            &[
-                source.as_ref(),
-                destination.as_ref(),
-                validate_state_pubkey.as_ref(),
-            ],
-            &TRANSFER_HOOK_PROGRAM_ID,
-        )
-        .0;
-        let extra_meta_4_pubkey = Address::find_program_address(
-            &[
-                hook_amount.to_le_bytes().as_ref(),
-                destination.as_ref(),
-                EXTRA_META_1.as_ref(),
-                extra_meta_3_pubkey.as_ref(),
-            ],
-            &TRANSFER_HOOK_PROGRAM_ID,
-        )
-        .0;
-
-        let instruction = create_transfer_checked_with_fee_instruction_with_extra_metas(
-            &crate::id(),
-            &source,
-            &MINT_PUBKEY,
-            &destination,
-            &authority,
-            &[],
-            amount,
-            DECIMALS,
-            fee,
-            mock_fetch_account_data_fn,
-        )
-        .await
-        .unwrap();
-
-        let check_metas = [
-            AccountMeta::new(source, false),
-            AccountMeta::new_readonly(MINT_PUBKEY, false),
-            AccountMeta::new(destination, false),
-            AccountMeta::new_readonly(authority, true),
-            AccountMeta::new_readonly(EXTRA_META_1, false), // demoted
-            AccountMeta::new_readonly(EXTRA_META_2, false), // demoted
-            AccountMeta::new(extra_meta_3_pubkey, false),
-            AccountMeta::new(extra_meta_4_pubkey, false),
-            AccountMeta::new_readonly(TRANSFER_HOOK_PROGRAM_ID, false),
-            AccountMeta::new_readonly(validate_state_pubkey, false),
-        ];
-
-        assert_eq!(instruction.accounts, check_metas);
-
-        // With additional signers
-        let signer_1 = Address::new_unique();
-        let signer_2 = Address::new_unique();
-        let signer_3 = Address::new_unique();
-
-        let instruction = create_transfer_checked_with_fee_instruction_with_extra_metas(
-            &crate::id(),
-            &source,
-            &MINT_PUBKEY,
-            &destination,
-            &authority,
-            &[&signer_1, &signer_2, &signer_3],
-            amount,
-            DECIMALS,
-            fee,
             mock_fetch_account_data_fn,
         )
         .await

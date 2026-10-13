@@ -271,6 +271,9 @@ pub enum TokenError {
     /// Confidential transfers are disabled
     #[error("Confidential transfers are disabled")]
     ConfidentialTransferDisabled,
+    /// The extension is disabled on this program
+    #[error("Extension is disabled")]
+    ExtensionDisabled,
 }
 impl From<TokenError> for ProgramError {
     fn from(e: TokenError) -> Self {
@@ -469,6 +472,7 @@ impl ToStr for TokenError {
                 "Key rotation attempted while pending balance is not zero"
             }
             TokenError::ConfidentialTransferDisabled => "Confidential transfers are disabled",
+            TokenError::ExtensionDisabled => "Extension is disabled",
         }
     }
 }

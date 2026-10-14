@@ -19,8 +19,8 @@ use {
 
 /// A 256-bit unsigned integer stored as little-endian bytes, usable as a Pod.
 ///
-/// Token amounts (mint supply, account balances, delegated amounts,
-/// transfer fees) are 256 bits wide on Jupnet. Lamport amounts remain `u64`.
+/// Token amounts (mint supply, account balances, delegated amounts) are 256
+/// bits wide on Jupnet. Lamport amounts remain `u64`.
 #[repr(transparent)]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Pod, Zeroable)]
 pub struct PodU256(pub [u8; 32]);

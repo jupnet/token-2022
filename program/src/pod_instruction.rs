@@ -90,8 +90,9 @@ pub(crate) enum PodTokenInstruction {
     UiAmountToAmount, // &str
     // 25
     InitializeMintCloseAuthority, // COption<Address>
-    TransferFeeExtension,
-    ConfidentialTransferExtension,
+    // 26 was `TransferFeeExtension`; the transfer fee extension is not
+    // supported on Jupnet and the discriminant is rejected as invalid
+    ConfidentialTransferExtension = 27,
     DefaultAccountStateExtension,
     Reallocate, // &[ExtensionType]
     // 30
@@ -613,8 +614,8 @@ mod tests {
         assert_eq!(pod_extension_types, extension_types);
 
         let extension_types = vec![
-            ExtensionType::TransferFeeConfig,
-            ExtensionType::TransferFeeAmount,
+            ExtensionType::TransferHook,
+            ExtensionType::TransferHookAccount,
         ];
         let check = TokenInstruction::GetAccountDataSize {
             extension_types: extension_types.clone(),

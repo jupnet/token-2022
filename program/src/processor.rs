@@ -795,12 +795,6 @@ impl Processor {
                     )?;
                     extension.close_authority = new_authority.try_into()?;
                 }
-                AuthorityType::TransferFeeConfig => {
-                    return Err(TokenError::ExtensionDisabled.into());
-                }
-                AuthorityType::WithheldWithdraw => {
-                    return Err(TokenError::ExtensionDisabled.into());
-                }
                 AuthorityType::InterestRate => {
                     return Err(TokenError::ExtensionDisabled.into());
                 }
@@ -1906,10 +1900,6 @@ impl Processor {
                     let (_, close_authority) =
                         decode_instruction_data_with_coption_pubkey::<()>(input)?;
                     Self::process_initialize_mint_close_authority(accounts, close_authority)
-                }
-                PodTokenInstruction::TransferFeeExtension => {
-                    msg!("Instruction: TransferFeeExtension");
-                    Err(TokenError::ExtensionDisabled.into())
                 }
                 PodTokenInstruction::ConfidentialTransferExtension => {
                     msg!("Instruction: ConfidentialTransferExtension");
@@ -8444,7 +8434,6 @@ mod tests {
 
         // extension instruction prefixes for disabled extensions
         for instruction in [
-            TokenInstruction::TransferFeeExtension,
             TokenInstruction::InterestBearingMintExtension,
             TokenInstruction::ScaledUiAmountExtension,
             TokenInstruction::PermissionedBurnExtension,
@@ -8478,8 +8467,6 @@ mod tests {
             &[Check::success()],
         );
         for authority_type in [
-            AuthorityType::TransferFeeConfig,
-            AuthorityType::WithheldWithdraw,
             AuthorityType::InterestRate,
             AuthorityType::PermanentDelegate,
             AuthorityType::ScaledUiAmount,
@@ -8497,6 +8484,36 @@ mod tests {
                 .unwrap(),
                 vec![&mut mint_account, &mut authority_account],
                 &[Check::err(TokenError::ExtensionDisabled.into())],
+            );
+        }
+
+        // the retired transfer fee instruction prefix (26) is unknown
+        do_process_instruction(
+            Instruction {
+                program_id,
+                accounts: vec![AccountMeta::new(mint_key, false)],
+                data: vec![26],
+            },
+            vec![&mut mint_account],
+            &[Check::err(TokenError::InvalidInstruction.into())],
+        );
+
+        // the retired transfer fee authority types (4, 5) are unknown
+        for retired_authority_type in [4u8, 5] {
+            let mut instruction = set_authority(
+                &program_id,
+                &mint_key,
+                None,
+                AuthorityType::CloseMint,
+                &authority_key,
+                &[],
+            )
+            .unwrap();
+            instruction.data[1] = retired_authority_type;
+            do_process_instruction(
+                instruction,
+                vec![&mut mint_account, &mut authority_account],
+                &[Check::err(TokenError::InvalidInstruction.into())],
             );
         }
     }

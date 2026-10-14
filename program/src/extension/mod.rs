@@ -2,10 +2,12 @@
 //!
 //! The confidential transfer, confidential transfer fee and confidential
 //! mint-burn extensions are not supported on Jupnet: their instructions fail
-//! with [`TokenError::ConfidentialTransferDisabled`]. The transfer fee,
-//! interest-bearing, scaled UI amount, permanent delegate and permissioned
-//! burn extensions are disabled as well: their instructions fail with
-//! [`TokenError::ExtensionDisabled`].
+//! with [`TokenError::ConfidentialTransferDisabled`]. The interest-bearing,
+//! scaled UI amount, permanent delegate and permissioned burn extensions are
+//! disabled as well: their instructions fail with
+//! [`TokenError::ExtensionDisabled`]. The transfer fee extension is removed
+//! entirely: its instruction and authority discriminants are unknown to the
+//! program.
 //!
 //! [`TokenError::ConfidentialTransferDisabled`]: spl_token_2022_interface::error::TokenError::ConfidentialTransferDisabled
 //! [`TokenError::ExtensionDisabled`]: spl_token_2022_interface::error::TokenError::ExtensionDisabled

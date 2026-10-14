@@ -33,8 +33,6 @@ use {
 pub const MIN_SIGNERS: usize = 1;
 /// Maximum number of multisignature signers (max N)
 pub const MAX_SIGNERS: usize = 11;
-/// Serialized length of a `u16`, for unpacking
-const U16_BYTES: usize = 2;
 /// Serialized length of a `u64`, for unpacking
 const U64_BYTES: usize = 8;
 /// Serialized length of a `U256`, for unpacking
@@ -125,10 +123,6 @@ pub enum TokenInstruction<'a> {
     /// delegate.  If this account is associated with the native mint then equal
     /// amounts of SOL and Tokens will be transferred to the destination
     /// account.
-    ///
-    /// If either account contains an `TransferFeeAmount` extension, this will
-    /// fail. Mints with the `TransferFeeConfig` extension are required in
-    /// order to assess the fee.
     ///
     /// Accounts expected by this instruction:
     ///
@@ -247,9 +241,6 @@ pub enum TokenInstruction<'a> {
     /// Close an account by transferring all its SOL to the destination account.
     /// Non-native accounts may only be closed if its token amount is zero.
     ///
-    /// Accounts with the `TransferFeeAmount` extension may only be closed if
-    /// the withheld amount is zero.
-    ///
     /// Accounts with the `ConfidentialTransfer` extension may only be closed if
     /// the pending and available balance ciphertexts are empty. Use
     /// `ConfidentialTransferInstruction::ApplyPendingBalance` and
@@ -320,9 +311,6 @@ pub enum TokenInstruction<'a> {
     /// This instruction differs from `Transfer` in that the token mint and
     /// decimals value is checked by the caller.  This may be useful when
     /// creating transactions offline or within a hardware wallet.
-    ///
-    /// If either account contains an `TransferFeeAmount` extension, the fee is
-    /// withheld in the destination account.
     ///
     /// Accounts expected by this instruction:
     ///
@@ -589,12 +577,9 @@ pub enum TokenInstruction<'a> {
         #[cfg_attr(feature = "serde", serde(with = "coption_fromstr"))]
         close_authority: COption<Address>,
     },
-    /// The common instruction prefix for Transfer Fee extension instructions.
-    ///
-    /// See `extension::transfer_fee::instruction::TransferFeeInstruction` for
-    /// further details about the extended instructions that share this
-    /// instruction prefix
-    TransferFeeExtension,
+    // Discriminant 26 (`TransferFeeExtension`) belonged to the transfer fee
+    // extension, which is not supported on Jupnet, and is rejected as an
+    // invalid instruction.
     /// The common instruction prefix for Confidential Transfer extension
     /// instructions.
     ///
@@ -923,9 +908,6 @@ impl<'a> TokenInstruction<'a> {
                 buf.push(25);
                 Self::pack_pubkey_option(close_authority, &mut buf);
             }
-            Self::TransferFeeExtension => {
-                buf.push(26);
-            }
             &Self::ConfidentialTransferExtension => {
                 buf.push(27);
             }
@@ -1124,7 +1106,6 @@ impl<'a> TokenInstruction<'a> {
                 let (close_authority, rest) = Self::unpack_pubkey_option(rest)?;
                 (Self::InitializeMintCloseAuthority { close_authority }, rest)
             }
-            26 => (Self::TransferFeeExtension, rest),
             27 => (Self::ConfidentialTransferExtension, rest),
             28 => (Self::DefaultAccountStateExtension, rest),
             29 => {
@@ -1219,15 +1200,6 @@ impl<'a> TokenInstruction<'a> {
         }
     }
 
-    pub(crate) fn unpack_u16(input: &[u8]) -> Result<(u16, &[u8]), ProgramError> {
-        let value = input
-            .get(..U16_BYTES)
-            .and_then(|slice| slice.try_into().ok())
-            .map(u16::from_le_bytes)
-            .ok_or(TokenError::InvalidInstruction)?;
-        Ok((value, &input[U16_BYTES..]))
-    }
-
     pub(crate) fn unpack_u64(input: &[u8]) -> Result<(u64, &[u8]), ProgramError> {
         let value = input
             .get(..U64_BYTES)
@@ -1267,10 +1239,9 @@ pub enum AuthorityType {
     AccountOwner,
     /// Authority to close a token account
     CloseAccount,
-    /// Authority to set the transfer fee
-    TransferFeeConfig,
-    /// Authority to withdraw withheld tokens from a mint
-    WithheldWithdraw,
+    // Discriminants 4 (`TransferFeeConfig`) and 5 (`WithheldWithdraw`)
+    // belonged to the transfer fee extension, which is not supported on
+    // Jupnet, and are rejected as invalid.
     /// Authority to close a mint account
     CloseMint,
     /// Authority to set the interest rate
@@ -1305,8 +1276,6 @@ impl AuthorityType {
             AuthorityType::FreezeAccount => 1,
             AuthorityType::AccountOwner => 2,
             AuthorityType::CloseAccount => 3,
-            AuthorityType::TransferFeeConfig => 4,
-            AuthorityType::WithheldWithdraw => 5,
             AuthorityType::CloseMint => 6,
             AuthorityType::InterestRate => 7,
             AuthorityType::PermanentDelegate => 8,
@@ -1329,8 +1298,6 @@ impl AuthorityType {
             1 => Ok(AuthorityType::FreezeAccount),
             2 => Ok(AuthorityType::AccountOwner),
             3 => Ok(AuthorityType::CloseAccount),
-            4 => Ok(AuthorityType::TransferFeeConfig),
-            5 => Ok(AuthorityType::WithheldWithdraw),
             6 => Ok(AuthorityType::CloseMint),
             7 => Ok(AuthorityType::InterestRate),
             8 => Ok(AuthorityType::PermanentDelegate),
@@ -2581,15 +2548,15 @@ mod test {
         assert_eq!(unpacked, check);
 
         let extension_types = vec![
-            ExtensionType::TransferFeeConfig,
-            ExtensionType::TransferFeeAmount,
+            ExtensionType::TransferHook,
+            ExtensionType::TransferHookAccount,
         ];
         let check = TokenInstruction::GetAccountDataSize {
             extension_types: extension_types.clone(),
         };
         let packed = check.pack();
-        let expect = [21u8, 1, 0, 2, 0];
-        assert_eq!(packed, &[21u8, 1, 0, 2, 0]);
+        let expect = [21u8, 14, 0, 15, 0];
+        assert_eq!(packed, &[21u8, 14, 0, 15, 0]);
         let unpacked = TokenInstruction::unpack(&expect).unwrap();
         assert_eq!(unpacked, check);
     }

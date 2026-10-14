@@ -3,8 +3,8 @@
 //! The confidential transfer, confidential transfer fee and confidential
 //! mint-burn extensions are not supported on Jupnet: their instructions fail
 //! with [`TokenError::ConfidentialTransferDisabled`]. The interest-bearing,
-//! scaled UI amount, permanent delegate and permissioned burn extensions are
-//! disabled as well: their instructions fail with
+//! scaled UI amount and permissioned burn extensions are disabled as well:
+//! their instructions fail with
 //! [`TokenError::ExtensionDisabled`]. The transfer fee extension is removed
 //! entirely: its instruction and authority discriminants are unknown to the
 //! program.
@@ -32,6 +32,8 @@ pub mod mint_close_authority;
 pub mod non_transferable;
 /// Pausable extension
 pub mod pausable;
+/// Permanent Delegate extension
+pub mod permanent_delegate;
 /// Utility to reallocate token accounts
 pub mod reallocate;
 /// Token-group extension

@@ -50,6 +50,7 @@ use {
             mint_close_authority::MintCloseAuthority,
             non_transferable::{NonTransferable, NonTransferableAccount},
             pausable::{PausableAccount, PausableConfig},
+            permanent_delegate::{get_permanent_delegate, PermanentDelegate},
             transfer_hook::{TransferHook, TransferHookAccount},
             BaseStateWithExtensions, BaseStateWithExtensionsMut, ExtensionType,
             PodStateWithExtensions, PodStateWithExtensionsMut,
@@ -203,6 +204,13 @@ impl Processor {
         let mint_data = mint_info.try_borrow()?;
         let mint = PodStateWithExtensions::<PodMint>::unpack(&mint_data)
             .map_err(|_| Into::<ProgramError>::into(TokenError::InvalidMint))?;
+        if mint
+            .get_extension::<PermanentDelegate>()
+            .map(|e| Option::<Address>::from(e.delegate).is_some())
+            .unwrap_or(false)
+        {
+            msg!("Warning: Mint has a permanent delegate, so tokens in this account may be seized at any time");
+        }
 
         check_program_account(mint_info.owner())?;
 
@@ -380,7 +388,7 @@ impl Processor {
             return Err(TokenError::NonTransferable.into());
         }
 
-        let maybe_transfer_hook_program_id =
+        let (maybe_permanent_delegate, maybe_transfer_hook_program_id) =
             if let Some((ref mint_info, expected_decimals)) = expected_mint_info {
                 check_program_account(mint_info.owner())?;
 
@@ -401,7 +409,10 @@ impl Processor {
                     }
                 }
 
-                transfer_hook::get_program_id(&mint)
+                (
+                    get_permanent_delegate(&mint),
+                    transfer_hook::get_program_id(&mint),
+                )
             } else {
                 // Transfer hook extension exists on the account, but no mint
                 // was provided to figure out required accounts, abort
@@ -418,13 +429,15 @@ impl Processor {
                     return Err(TokenError::MintRequiredForTransfer.into());
                 }
 
-                None
+                (None, None)
             };
 
         let self_transfer = source_account_info.address() == destination_account_info.address();
         if let Ok(cpi_guard) = source_account.get_extension::<CpiGuard>() {
             // Blocks all cases where the authority has signed if CPI Guard is
-            // enabled, including the account being delegated to the owner
+            // enabled, including:
+            // * the account is delegated to the owner
+            // * the account owner is the permanent delegate
             if *authority_info.address() == source_account.base.owner
                 && cpi_guard.lock_cpi.into()
                 && in_cpi()
@@ -432,11 +445,23 @@ impl Processor {
                 return Err(TokenError::CpiGuardTransferBlocked.into());
             }
         }
-        match source_account.base.delegate {
-            PodCOption {
-                option: PodCOption::<Address>::SOME,
-                value: delegate,
-            } if authority_info.address() == &delegate => {
+        match (source_account.base.delegate, maybe_permanent_delegate) {
+            (_, Some(ref delegate)) if authority_info.address() == delegate => {
+                Self::validate_owner(
+                    program_id,
+                    delegate,
+                    authority_info,
+                    authority_info_data_len,
+                    account_info_iter.as_slice(),
+                )?
+            }
+            (
+                PodCOption {
+                    option: PodCOption::<Address>::SOME,
+                    value: delegate,
+                },
+                _,
+            ) if authority_info.address() == &delegate => {
                 Self::validate_owner(
                     program_id,
                     &delegate,
@@ -799,7 +824,17 @@ impl Processor {
                     return Err(TokenError::ExtensionDisabled.into());
                 }
                 AuthorityType::PermanentDelegate => {
-                    return Err(TokenError::ExtensionDisabled.into());
+                    let extension = mint.get_extension_mut::<PermanentDelegate>()?;
+                    let maybe_delegate: Option<Address> = extension.delegate.into();
+                    let delegate = maybe_delegate.ok_or(TokenError::AuthorityTypeNotSupported)?;
+                    Self::validate_owner(
+                        program_id,
+                        &delegate,
+                        authority_info,
+                        authority_info_data_len,
+                        account_info_iter.as_slice(),
+                    )?;
+                    extension.delegate = new_authority.try_into()?;
                 }
                 AuthorityType::ConfidentialTransferMint => {
                     return Err(TokenError::ConfidentialTransferDisabled.into());
@@ -1040,9 +1075,13 @@ impl Processor {
             return Err(TokenError::IllegalMintBurnConversion.into());
         }
 
+        let maybe_permanent_delegate = get_permanent_delegate(&mint);
+
         if let Ok(cpi_guard) = source_account.get_extension::<CpiGuard>() {
             // Blocks all cases where the authority has signed if CPI Guard is
-            // enabled, including the account being delegated to the owner
+            // enabled, including:
+            // * the account is delegated to the owner
+            // * the account owner is the permanent delegate
             if *authority_info.address() == source_account.base.owner
                 && cpi_guard.lock_cpi.into()
                 && in_cpi()
@@ -1055,11 +1094,23 @@ impl Processor {
             .base
             .is_owned_by_system_program_or_incinerator()
         {
-            match &source_account.base.delegate {
-                PodCOption {
-                    option: PodCOption::<Address>::SOME,
-                    value: delegate,
-                } if authority_info.address() == delegate => {
+            match (&source_account.base.delegate, maybe_permanent_delegate) {
+                (_, Some(ref delegate)) if authority_info.address() == delegate => {
+                    Self::validate_owner(
+                        program_id,
+                        delegate,
+                        authority_info,
+                        authority_info_data_len,
+                        account_info_iter.as_slice(),
+                    )?
+                }
+                (
+                    PodCOption {
+                        option: PodCOption::<Address>::SOME,
+                        value: delegate,
+                    },
+                    _,
+                ) if authority_info.address() == delegate => {
                     Self::validate_owner(
                         program_id,
                         delegate,
@@ -1445,6 +1496,26 @@ impl Processor {
         let mut mint_data = mint_account_info.try_borrow_mut()?;
         let mut mint = PodStateWithExtensionsMut::<PodMint>::unpack_uninitialized(&mut mint_data)?;
         mint.init_extension::<NonTransferable>(true)?;
+
+        Ok(())
+    }
+
+    /// Processes an [`InitializePermanentDelegate`](enum.TokenInstruction.html)
+    /// instruction
+    pub fn process_initialize_permanent_delegate(
+        accounts: &mut [AccountView],
+        delegate: &Address,
+    ) -> ProgramResult {
+        let account_info_iter = &mut accounts.iter_mut();
+        let mint_account_info = next_account_view(account_info_iter)?;
+        check_program_account(mint_account_info.owner())?;
+
+        let mut mint_data = mint_account_info.try_borrow_mut()?;
+        let mut mint = PodStateWithExtensionsMut::<PodMint>::unpack_uninitialized(&mut mint_data)?;
+        let extension = mint.init_extension::<PermanentDelegate>(true)?;
+        extension.delegate = Some(*delegate)
+            .try_into()
+            .map_err(|_| ProgramError::InvalidArgument)?;
 
         Ok(())
     }
@@ -1955,7 +2026,8 @@ impl Processor {
                 }
                 PodTokenInstruction::InitializePermanentDelegate => {
                     msg!("Instruction: InitializePermanentDelegate");
-                    Err(TokenError::ExtensionDisabled.into())
+                    let delegate = decode_instruction_data::<Address>(input)?;
+                    Self::process_initialize_permanent_delegate(accounts, delegate)
                 }
                 PodTokenInstruction::TransferHookExtension => {
                     transfer_hook::processor::process_instruction(program_id, accounts, &input[1..])
@@ -8416,6 +8488,236 @@ mod tests {
     }
 
     #[test]
+    fn test_permanent_delegate() {
+        let program_id = crate::id();
+        let mint_key = Address::new_unique();
+        let mint_len =
+            ExtensionType::try_calculate_account_len::<Mint>(&[ExtensionType::PermanentDelegate])
+                .unwrap();
+        let mut mint_account = SolanaAccount::new(
+            Rent::default().minimum_balance(mint_len),
+            mint_len,
+            &program_id,
+        );
+        let mint_authority_key = Address::new_unique();
+        let mut mint_authority_account = SolanaAccount::default();
+        let delegate_key = Address::new_unique();
+        let mut delegate_account = SolanaAccount::default();
+        let new_delegate_key = Address::new_unique();
+        let mut new_delegate_account = SolanaAccount::default();
+        let owner_key = Address::new_unique();
+        let mut owner_account = SolanaAccount::default();
+        let account_key = Address::new_unique();
+        let mut account_account = SolanaAccount::new(
+            account_minimum_balance(),
+            Account::get_packed_len(),
+            &program_id,
+        );
+        let account2_key = Address::new_unique();
+        let mut account2_account = SolanaAccount::new(
+            account_minimum_balance(),
+            Account::get_packed_len(),
+            &program_id,
+        );
+        let mut rent_sysvar = rent_sysvar();
+
+        // create a mint with a permanent delegate
+        do_process_instruction(
+            initialize_permanent_delegate(&program_id, &mint_key, &delegate_key).unwrap(),
+            vec![&mut mint_account],
+            &[Check::success()],
+        );
+        do_process_instruction(
+            initialize_mint(&program_id, &mint_key, &mint_authority_key, None, 2).unwrap(),
+            vec![&mut mint_account, &mut rent_sysvar],
+            &[Check::success()],
+        );
+
+        // create two accounts owned by `owner`
+        do_process_instruction(
+            initialize_account(&program_id, &account_key, &mint_key, &owner_key).unwrap(),
+            vec![
+                &mut account_account,
+                &mut mint_account,
+                &mut owner_account,
+                &mut rent_sysvar,
+            ],
+            &[Check::success()],
+        );
+        do_process_instruction(
+            initialize_account(&program_id, &account2_key, &mint_key, &owner_key).unwrap(),
+            vec![
+                &mut account2_account,
+                &mut mint_account,
+                &mut owner_account,
+                &mut rent_sysvar,
+            ],
+            &[Check::success()],
+        );
+        do_process_instruction(
+            mint_to(
+                &program_id,
+                &mint_key,
+                &account_key,
+                &mint_authority_key,
+                &[],
+                U256::new(1000),
+            )
+            .unwrap(),
+            vec![
+                &mut mint_account,
+                &mut account_account,
+                &mut mint_authority_account,
+            ],
+            &[Check::success()],
+        );
+
+        // the permanent delegate moves tokens without an approval
+        do_process_instruction(
+            transfer_checked(
+                &program_id,
+                &account_key,
+                &mint_key,
+                &account2_key,
+                &delegate_key,
+                &[],
+                U256::new(400),
+                2,
+            )
+            .unwrap(),
+            vec![
+                &mut account_account,
+                &mut mint_account,
+                &mut account2_account,
+                &mut delegate_account,
+            ],
+            &[Check::success()],
+        );
+        let account = Account::unpack_unchecked(&account_account.data).unwrap();
+        assert_eq!(account.amount, U256::new(600));
+        assert_eq!(account.delegate, COption::None);
+        let account2 = Account::unpack_unchecked(&account2_account.data).unwrap();
+        assert_eq!(account2.amount, U256::new(400));
+
+        // and burns them
+        do_process_instruction(
+            burn_checked(
+                &program_id,
+                &account2_key,
+                &mint_key,
+                &delegate_key,
+                &[],
+                U256::new(400),
+                2,
+            )
+            .unwrap(),
+            vec![
+                &mut account2_account,
+                &mut mint_account,
+                &mut delegate_account,
+            ],
+            &[Check::success()],
+        );
+        let account2 = Account::unpack_unchecked(&account2_account.data).unwrap();
+        assert_eq!(account2.amount, U256::ZERO);
+        let mint = PodStateWithExtensions::<PodMint>::unpack(&mint_account.data).unwrap();
+        assert_eq!(U256::from(mint.base.supply), U256::new(600));
+
+        // without the mint the delegate cannot be verified, so the plain
+        // transfer falls back to the owner check
+        do_process_instruction(
+            #[allow(deprecated)]
+            transfer(
+                &program_id,
+                &account_key,
+                &account2_key,
+                &delegate_key,
+                &[],
+                U256::new(1),
+            )
+            .unwrap(),
+            vec![
+                &mut account_account,
+                &mut account2_account,
+                &mut delegate_account,
+            ],
+            &[Check::err(TokenError::OwnerMismatch.into())],
+        );
+
+        // only the current delegate can rotate the delegate
+        do_process_instruction(
+            set_authority(
+                &program_id,
+                &mint_key,
+                Some(&new_delegate_key),
+                AuthorityType::PermanentDelegate,
+                &new_delegate_key,
+                &[],
+            )
+            .unwrap(),
+            vec![&mut mint_account, &mut new_delegate_account],
+            &[Check::err(TokenError::OwnerMismatch.into())],
+        );
+        do_process_instruction(
+            set_authority(
+                &program_id,
+                &mint_key,
+                Some(&new_delegate_key),
+                AuthorityType::PermanentDelegate,
+                &delegate_key,
+                &[],
+            )
+            .unwrap(),
+            vec![&mut mint_account, &mut delegate_account],
+            &[Check::success()],
+        );
+
+        // the old delegate has lost its power, the new one has it
+        do_process_instruction(
+            transfer_checked(
+                &program_id,
+                &account_key,
+                &mint_key,
+                &account2_key,
+                &delegate_key,
+                &[],
+                U256::new(100),
+                2,
+            )
+            .unwrap(),
+            vec![
+                &mut account_account,
+                &mut mint_account,
+                &mut account2_account,
+                &mut delegate_account,
+            ],
+            &[Check::err(TokenError::OwnerMismatch.into())],
+        );
+        do_process_instruction(
+            transfer_checked(
+                &program_id,
+                &account_key,
+                &mint_key,
+                &account2_key,
+                &new_delegate_key,
+                &[],
+                U256::new(100),
+                2,
+            )
+            .unwrap(),
+            vec![
+                &mut account_account,
+                &mut mint_account,
+                &mut account2_account,
+                &mut new_delegate_account,
+            ],
+            &[Check::success()],
+        );
+        let account2 = Account::unpack_unchecked(&account2_account.data).unwrap();
+        assert_eq!(account2.amount, U256::new(100));
+    }
+
+    #[test]
     fn test_disabled_extensions() {
         let program_id = crate::id();
         let mint_key = Address::new_unique();
@@ -8424,13 +8726,6 @@ mod tests {
         let authority_key = Address::new_unique();
         let mut authority_account = SolanaAccount::default();
         let mut rent_sysvar = rent_sysvar();
-
-        // base instruction for a disabled extension
-        do_process_instruction(
-            initialize_permanent_delegate(&program_id, &mint_key, &authority_key).unwrap(),
-            vec![&mut mint_account],
-            &[Check::err(TokenError::ExtensionDisabled.into())],
-        );
 
         // extension instruction prefixes for disabled extensions
         for instruction in [
@@ -8468,7 +8763,6 @@ mod tests {
         );
         for authority_type in [
             AuthorityType::InterestRate,
-            AuthorityType::PermanentDelegate,
             AuthorityType::ScaledUiAmount,
             AuthorityType::PermissionedBurn,
         ] {

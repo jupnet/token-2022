@@ -1517,7 +1517,9 @@ pub fn transfer(
     signer_pubkeys: &[&Address],
     amount: U256,
 ) -> Result<Instruction, ProgramError> {
-    check_spl_token_program_account(token_program_id)?;
+    // The amount is 256 bits wide, which legacy spl-token cannot decode, so
+    // only this program is accepted here.
+    check_program_account(token_program_id)?;
     #[allow(deprecated)]
     let data = TokenInstruction::Transfer { amount }.pack();
 
@@ -1548,7 +1550,9 @@ pub fn approve(
     signer_pubkeys: &[&Address],
     amount: U256,
 ) -> Result<Instruction, ProgramError> {
-    check_spl_token_program_account(token_program_id)?;
+    // The amount is 256 bits wide, which legacy spl-token cannot decode, so
+    // only this program is accepted here.
+    check_program_account(token_program_id)?;
     let data = TokenInstruction::Approve { amount }.pack();
 
     let mut accounts = Vec::with_capacity(3 + signer_pubkeys.len());
@@ -1639,7 +1643,9 @@ pub fn mint_to(
     signer_pubkeys: &[&Address],
     amount: U256,
 ) -> Result<Instruction, ProgramError> {
-    check_spl_token_program_account(token_program_id)?;
+    // The amount is 256 bits wide, which legacy spl-token cannot decode, so
+    // only this program is accepted here.
+    check_program_account(token_program_id)?;
     let data = TokenInstruction::MintTo { amount }.pack();
 
     let mut accounts = Vec::with_capacity(3 + signer_pubkeys.len());
@@ -1669,7 +1675,9 @@ pub fn burn(
     signer_pubkeys: &[&Address],
     amount: U256,
 ) -> Result<Instruction, ProgramError> {
-    check_spl_token_program_account(token_program_id)?;
+    // The amount is 256 bits wide, which legacy spl-token cannot decode, so
+    // only this program is accepted here.
+    check_program_account(token_program_id)?;
     let data = TokenInstruction::Burn { amount }.pack();
 
     let mut accounts = Vec::with_capacity(3 + signer_pubkeys.len());
@@ -1789,7 +1797,9 @@ pub fn transfer_checked(
     amount: U256,
     decimals: u8,
 ) -> Result<Instruction, ProgramError> {
-    check_spl_token_program_account(token_program_id)?;
+    // The amount is 256 bits wide, which legacy spl-token cannot decode, so
+    // only this program is accepted here.
+    check_program_account(token_program_id)?;
     let data = TokenInstruction::TransferChecked { amount, decimals }.pack();
 
     let mut accounts = Vec::with_capacity(4 + signer_pubkeys.len());
@@ -1823,7 +1833,9 @@ pub fn approve_checked(
     amount: U256,
     decimals: u8,
 ) -> Result<Instruction, ProgramError> {
-    check_spl_token_program_account(token_program_id)?;
+    // The amount is 256 bits wide, which legacy spl-token cannot decode, so
+    // only this program is accepted here.
+    check_program_account(token_program_id)?;
     let data = TokenInstruction::ApproveChecked { amount, decimals }.pack();
 
     let mut accounts = Vec::with_capacity(4 + signer_pubkeys.len());
@@ -1855,7 +1867,9 @@ pub fn mint_to_checked(
     amount: U256,
     decimals: u8,
 ) -> Result<Instruction, ProgramError> {
-    check_spl_token_program_account(token_program_id)?;
+    // The amount is 256 bits wide, which legacy spl-token cannot decode, so
+    // only this program is accepted here.
+    check_program_account(token_program_id)?;
     let data = TokenInstruction::MintToChecked { amount, decimals }.pack();
 
     let mut accounts = Vec::with_capacity(3 + signer_pubkeys.len());
@@ -1886,7 +1900,9 @@ pub fn burn_checked(
     amount: U256,
     decimals: u8,
 ) -> Result<Instruction, ProgramError> {
-    check_spl_token_program_account(token_program_id)?;
+    // The amount is 256 bits wide, which legacy spl-token cannot decode, so
+    // only this program is accepted here.
+    check_program_account(token_program_id)?;
     let data = TokenInstruction::BurnChecked { amount, decimals }.pack();
 
     let mut accounts = Vec::with_capacity(3 + signer_pubkeys.len());
@@ -1986,7 +2002,9 @@ pub fn amount_to_ui_amount(
     mint_pubkey: &Address,
     amount: U256,
 ) -> Result<Instruction, ProgramError> {
-    check_spl_token_program_account(token_program_id)?;
+    // The amount is 256 bits wide, which legacy spl-token cannot decode, so
+    // only this program is accepted here.
+    check_program_account(token_program_id)?;
 
     Ok(Instruction {
         program_id: *token_program_id,
@@ -2222,6 +2240,44 @@ pub fn unwrap_lamports(
 #[cfg(test)]
 mod test {
     use {super::*, proptest::prelude::*};
+
+    /// Legacy spl-token expects `u64` amounts, so the `U256` amount builders
+    /// must refuse its program id instead of emitting data it misreads (for
+    /// `TransferChecked` the decimals would land at byte 33 instead of 9).
+    #[test]
+    fn amount_builders_reject_legacy_spl_token() {
+        let legacy = crate::inline_spl_token::id();
+        let key = Address::new_from_array([7u8; 32]);
+        let amount = U256::ONE;
+        let decimals = 2;
+
+        let legacy_results = [
+            transfer(&legacy, &key, &key, &key, &[], amount),
+            approve(&legacy, &key, &key, &key, &[], amount),
+            mint_to(&legacy, &key, &key, &key, &[], amount),
+            burn(&legacy, &key, &key, &key, &[], amount),
+            transfer_checked(&legacy, &key, &key, &key, &key, &[], amount, decimals),
+            approve_checked(&legacy, &key, &key, &key, &key, &[], amount, decimals),
+            mint_to_checked(&legacy, &key, &key, &key, &[], amount, decimals),
+            burn_checked(&legacy, &key, &key, &key, &[], amount, decimals),
+            amount_to_ui_amount(&legacy, &key, amount),
+        ];
+        for result in legacy_results {
+            assert_eq!(result.unwrap_err(), ProgramError::IncorrectProgramId);
+        }
+
+        // builders without an amount still accept the legacy program id
+        revoke(&legacy, &key, &key, &[]).unwrap();
+
+        // and this program is accepted by the amount builders
+        let instruction =
+            transfer_checked(&crate::id(), &key, &key, &key, &key, &[], amount, decimals).unwrap();
+        assert_eq!(instruction.program_id, crate::id());
+        let mut expect = vec![12u8];
+        expect.extend_from_slice(&amount.to_le_bytes());
+        expect.push(decimals);
+        assert_eq!(instruction.data, expect);
+    }
 
     #[test]
     fn test_initialize_mint_packing() {

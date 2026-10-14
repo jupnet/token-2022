@@ -149,7 +149,7 @@ mod tests {
         Account::SIZE_OF;
         "mint extension with no required account extensions"
     )]
-    // 165 base + 1 account type + (4 header + 0 `ImmutableOwner`) + (4 header + 1
+    // 213 base + 1 account type + (4 header + 0 `ImmutableOwner`) + (4 header + 1
     // `MemoTransfer`) + (4 header + 1 `CpiGuard`)
     #[test_case(
         TEST_MINT_SLICE.to_vec(),
@@ -158,10 +158,10 @@ mod tests {
             ExtensionType::MemoTransfer,
             ExtensionType::CpiGuard,
         ],
-        180;
+        228;
         "standalone account extensions"
     )]
-    // 165 base + 1 account type + (4 header + 0 `NonTransferableAccount`) + (4 header + 0
+    // 213 base + 1 account type + (4 header + 0 `NonTransferableAccount`) + (4 header + 0
     // `ImmutableOwner`)
     #[test_case(
         mint_data_with_tlv_entries(&[(ExtensionType::NonTransferable, 0)]),
@@ -170,17 +170,17 @@ mod tests {
             ExtensionType::NonTransferableAccount,
             ExtensionType::ImmutableOwner,
         ],
-        174;
+        222;
         "requested extensions overlap required ones"
     )]
     #[test_case(
         {
-            let mut data = mint_data_with_tlv_entries(&[(ExtensionType::TransferFeeConfig, 0)]);
+            let mut data = mint_data_with_tlv_entries(&[(ExtensionType::TransferHook, 0)]);
             data.push(0);
             data
         },
         &[],
-        178;
+        219;
         "trailing realloc byte is ignored"
     )]
     #[test_case(
@@ -217,22 +217,22 @@ mod tests {
             (ExtensionType::NonTransferable, 0),
             (ExtensionType::NonTransferable, 0),
         ]),
-        174;
+        222;
         "duplicate mint extensions"
     )]
     #[test_case(
-        mint_data_with_tlv_entries(&[(ExtensionType::TransferFeeConfig, 5)]),
-        178;
+        mint_data_with_tlv_entries(&[(ExtensionType::TransferHook, 5)]),
+        219;
         "account size is computed from the extension types alone"
     )]
     #[test_case(
         {
-            let mut data = mint_data_with_tlv_entries(&[(ExtensionType::TransferFeeConfig, 0)]);
+            let mut data = mint_data_with_tlv_entries(&[(ExtensionType::TransferHook, 0)]);
             data.extend_from_slice(&u16::from(ExtensionType::Uninitialized).to_le_bytes());
             data.extend_from_slice(&[0xff; 7]);
             data
         },
-        178;
+        219;
         "bytes after uninitialized terminator are ignored"
     )]
     fn sizes_unwritable_mint_bytes_to_known_len(mint_data: Vec<u8>, expected_len: usize) {
@@ -265,7 +265,7 @@ mod tests {
         );
     }
 
-    #[test_case(ExtensionType::TransferFeeConfig; "mint extension")]
+    #[test_case(ExtensionType::TransferHook; "mint extension")]
     #[test_case(ExtensionType::Uninitialized; "uninitialized")]
     fn rejects_non_account_additional_extension(extension_type: ExtensionType) {
         assert_eq!(
@@ -276,7 +276,7 @@ mod tests {
 
     #[test_case(
         {
-            let mut tail = u16::from(ExtensionType::TransferFeeConfig).to_le_bytes().to_vec();
+            let mut tail = u16::from(ExtensionType::TransferHook).to_le_bytes().to_vec();
             tail.push(0);
             tail
         };
@@ -298,7 +298,7 @@ mod tests {
     #[test]
     fn visits_required_account_extensions_in_tlv_order() {
         let mint_data = mint_data_with_tlv_entries(&[
-            (ExtensionType::TransferFeeConfig, 0),
+            (ExtensionType::TransferHook, 0),
             (ExtensionType::NonTransferable, 0),
         ]);
         let mint = PodStateWithExtensions::<PodMint>::unpack(&mint_data).unwrap();
@@ -313,7 +313,7 @@ mod tests {
         assert_eq!(
             visited,
             [
-                ExtensionType::TransferFeeAmount,
+                ExtensionType::TransferHookAccount,
                 ExtensionType::NonTransferableAccount,
                 ExtensionType::ImmutableOwner,
             ]
@@ -324,7 +324,7 @@ mod tests {
     fn visitor_error_aborts_the_walk() {
         let mint_data = mint_data_with_tlv_entries(&[
             (ExtensionType::NonTransferable, 0),
-            (ExtensionType::TransferFeeConfig, 0),
+            (ExtensionType::TransferHook, 0),
         ]);
         let mint = PodStateWithExtensions::<PodMint>::unpack(&mint_data).unwrap();
 

@@ -2,6 +2,8 @@
 //! correct accounts
 
 use {
+    crate::processor::amount_to_u64,
+    ethnum::U256,
     solana_account_info::AccountInfo,
     solana_address::Address,
     solana_cpi::invoke_signed,
@@ -9,7 +11,7 @@ use {
     solana_program_error::{ProgramError, ProgramResult},
     spl_token_2022_interface::inline_spl_token,
     spl_token_2022_interface::{
-        extension::{transfer_fee, transfer_hook, StateWithExtensions},
+        extension::{transfer_hook, StateWithExtensions},
         instruction,
         pod::PodMultisig,
         state::{Mint, PackedSizeOf},
@@ -56,33 +58,19 @@ fn transfer_instruction_and_account_infos<'a>(
     destination_info: AccountInfo<'a>,
     authority_info: AccountInfo<'a>,
     additional_accounts: &[AccountInfo<'a>],
-    amount: u64,
+    amount: U256,
     decimals: u8,
-    fee: Option<u64>,
 ) -> Result<(Instruction, Vec<AccountInfo<'a>>), ProgramError> {
-    let mut cpi_instruction = match fee {
-        None => instruction::transfer_checked(
-            token_program_id,
-            source_info.key,
-            mint_info.key,
-            destination_info.key,
-            authority_info.key,
-            &[], // Later added
-            amount,
-            decimals,
-        )?,
-        Some(fee) => transfer_fee::instruction::transfer_checked_with_fee(
-            token_program_id,
-            source_info.key,
-            mint_info.key,
-            destination_info.key,
-            authority_info.key,
-            &[], // Later added
-            amount,
-            decimals,
-            fee,
-        )?,
-    };
+    let mut cpi_instruction = instruction::transfer_checked(
+        token_program_id,
+        source_info.key,
+        mint_info.key,
+        destination_info.key,
+        authority_info.key,
+        &[], // Later added
+        amount,
+        decimals,
+    )?;
 
     let mut cpi_account_infos = vec![
         source_info.clone(),
@@ -120,6 +108,8 @@ fn transfer_instruction_and_account_infos<'a>(
         let mint_data = mint_info.try_borrow_data()?;
         let mint = StateWithExtensions::<Mint>::unpack(&mint_data)?;
         if let Some(program_id) = transfer_hook::get_program_id(&mint) {
+            // The transfer hook interface carries a 64-bit amount
+            let amount = amount_to_u64(amount)?;
             add_extra_accounts_for_execute_cpi(
                 &mut cpi_instruction,
                 &mut cpi_account_infos,
@@ -136,18 +126,18 @@ fn transfer_instruction_and_account_infos<'a>(
     Ok((cpi_instruction, cpi_account_infos))
 }
 
-/// Internal function to reduce redundancy between the callers
+/// Helper to CPI into token-2022 on-chain, looking through the additional
+/// account infos to create the proper instruction with the proper account infos
 #[allow(clippy::too_many_arguments)]
-fn invoke_transfer_internal<'a>(
+pub fn invoke_transfer_checked<'a>(
     token_program_id: &Address,
     source_info: AccountInfo<'a>,
     mint_info: AccountInfo<'a>,
     destination_info: AccountInfo<'a>,
     authority_info: AccountInfo<'a>,
     additional_accounts: &[AccountInfo<'a>],
-    amount: u64,
+    amount: U256,
     decimals: u8,
-    fee: Option<u64>,
     seeds: &[&[&[u8]]],
 ) -> ProgramResult {
     let (cpi_instruction, cpi_account_infos) = transfer_instruction_and_account_infos(
@@ -159,68 +149,9 @@ fn invoke_transfer_internal<'a>(
         additional_accounts,
         amount,
         decimals,
-        fee,
     )?;
 
     invoke_signed(&cpi_instruction, &cpi_account_infos, seeds)
-}
-
-/// Helper to CPI into token-2022 on-chain, looking through the additional
-/// account infos to create the proper instruction with the proper account infos
-#[allow(clippy::too_many_arguments)]
-pub fn invoke_transfer_checked<'a>(
-    token_program_id: &Address,
-    source_info: AccountInfo<'a>,
-    mint_info: AccountInfo<'a>,
-    destination_info: AccountInfo<'a>,
-    authority_info: AccountInfo<'a>,
-    additional_accounts: &[AccountInfo<'a>],
-    amount: u64,
-    decimals: u8,
-    seeds: &[&[&[u8]]],
-) -> ProgramResult {
-    invoke_transfer_internal(
-        token_program_id,
-        source_info,
-        mint_info,
-        destination_info,
-        authority_info,
-        additional_accounts,
-        amount,
-        decimals,
-        None,
-        seeds,
-    )
-}
-
-/// Helper to CPI into token-2022 on-chain, looking through the additional
-/// account infos to create the proper instruction with the fee
-/// and proper account infos
-#[allow(clippy::too_many_arguments)]
-pub fn invoke_transfer_checked_with_fee<'a>(
-    token_program_id: &Address,
-    source_info: AccountInfo<'a>,
-    mint_info: AccountInfo<'a>,
-    destination_info: AccountInfo<'a>,
-    authority_info: AccountInfo<'a>,
-    additional_accounts: &[AccountInfo<'a>],
-    amount: u64,
-    decimals: u8,
-    fee: u64,
-    seeds: &[&[&[u8]]],
-) -> ProgramResult {
-    invoke_transfer_internal(
-        token_program_id,
-        source_info,
-        mint_info,
-        destination_info,
-        authority_info,
-        additional_accounts,
-        amount,
-        decimals,
-        Some(fee),
-        seeds,
-    )
 }
 
 #[cfg(test)]
@@ -249,7 +180,7 @@ mod tests {
         let state = Mint {
             decimals: 10,
             is_initialized: true,
-            supply: 100_000,
+            supply: U256::new(100_000),
             mint_authority: COption::Some(Address::new_unique()),
             freeze_authority: COption::None,
         };
@@ -302,19 +233,11 @@ mod tests {
     }
 
     // Parameterized test function
-    #[test_case(false, false, false; "single signer")]
-    #[test_case(false, true, false; "single signer with fee")]
-    #[test_case(false, false, true; "single signer with transfer hook")]
-    #[test_case(false, true, true; "single signer with fee and transfer hook")]
-    #[test_case(true, false, false; "multisig")]
-    #[test_case(true, true, false; "multisig with fee")]
-    #[test_case(true, false, true; "multisig with transfer hook")]
-    #[test_case(true, true, true; "multisig with fee and transfer_hook")]
-    fn test_parameterized_invoke_fns(
-        with_multisig: bool,
-        with_fee: bool,
-        with_transfer_hook: bool,
-    ) {
+    #[test_case(false, false; "single signer")]
+    #[test_case(false, true; "single signer with transfer hook")]
+    #[test_case(true, false; "multisig")]
+    #[test_case(true, true; "multisig with transfer hook")]
+    fn test_parameterized_invoke_fns(with_multisig: bool, with_transfer_hook: bool) {
         let token_program_id = crate::id();
         let source_key = Address::new_unique();
         let mint_key = Address::new_unique();
@@ -557,9 +480,8 @@ mod tests {
             destination_info.clone(),
             authority_info.clone(),
             &additional_accounts,
-            200,
+            U256::new(200),
             6,
-            with_fee.then_some(120),
         )
         .unwrap();
         let account_keys = account_infos

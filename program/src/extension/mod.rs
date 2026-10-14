@@ -1,9 +1,17 @@
 //! Extensions available to token mints and accounts
+//!
+//! The confidential transfer, confidential transfer fee and confidential
+//! mint-burn extensions are not supported on Jupnet: their instructions fail
+//! with [`TokenError::ConfidentialTransferDisabled`]. The interest-bearing,
+//! scaled UI amount and permissioned burn extensions are disabled as well:
+//! their instructions fail with
+//! [`TokenError::ExtensionDisabled`]. The transfer fee extension is removed
+//! entirely: its instruction and authority discriminants are unknown to the
+//! program.
+//!
+//! [`TokenError::ConfidentialTransferDisabled`]: spl_token_2022_interface::error::TokenError::ConfidentialTransferDisabled
+//! [`TokenError::ExtensionDisabled`]: spl_token_2022_interface::error::TokenError::ExtensionDisabled
 
-/// Confidential Transfer extension
-pub mod confidential_transfer;
-/// Confidential Transfer Fee extension
-pub mod confidential_transfer_fee;
 /// CPI Guard extension
 pub mod cpi_guard;
 /// Default Account State extension
@@ -14,8 +22,6 @@ pub mod group_member_pointer;
 pub mod group_pointer;
 /// Immutable Owner extension
 pub mod immutable_owner;
-/// Interest-Bearing Mint extension
-pub mod interest_bearing_mint;
 /// Memo Transfer extension
 pub mod memo_transfer;
 /// Metadata Pointer extension
@@ -28,23 +34,14 @@ pub mod non_transferable;
 pub mod pausable;
 /// Permanent Delegate extension
 pub mod permanent_delegate;
-/// Permissioned burn extension
-pub mod permissioned_burn;
 /// Utility to reallocate token accounts
 pub mod reallocate;
-/// Scaled UI Amount extension
-pub mod scaled_ui_amount;
 /// Token-group extension
 pub mod token_group;
 /// Token-metadata extension
 pub mod token_metadata;
-/// Transfer Fee extension
-pub mod transfer_fee;
 /// Transfer Hook extension
 pub mod transfer_hook;
-
-/// Confidential mint-burn extension
-pub mod confidential_mint_burn;
 
 use pinocchio::AccountView;
 use solana_program_error::ProgramError;

@@ -27,7 +27,6 @@ use {
             permanent_delegate::PermanentDelegate,
             permissioned_burn::PermissionedBurnConfig,
             scaled_ui_amount::ScaledUiAmountConfig,
-            transfer_fee::{TransferFeeAmount, TransferFeeConfig},
             transfer_hook::{TransferHook, TransferHookAccount},
         },
         pod::{PodAccount, PodMint},
@@ -86,8 +85,6 @@ pub mod scaled_ui_amount;
 pub mod token_group;
 /// Token-metadata extension
 pub mod token_metadata;
-/// Transfer Fee extension
-pub mod transfer_fee;
 /// Transfer Hook extension
 pub mod transfer_hook;
 
@@ -290,16 +287,16 @@ fn check_account_type<S: BaseState>(account_type: AccountType) -> Result<(), Pro
 
 /// Any account with extensions must be at least `Account::LEN`.  Both mints and
 /// accounts can have extensions
-/// A mint with extensions that takes it past 165 could be indiscernible from an
+/// A mint with extensions that takes it past 213 could be indiscernible from an
 /// Account with an extension, even if we add the account type. For example,
 /// let's say we have:
 ///
 /// ```text
-/// Account: 165 bytes... + [2, 0, 3, 0, 100, ....]
+/// Account: 213 bytes... + [2, 0, 3, 0, 100, ....]
 ///                          ^     ^       ^     ^
 ///                     acct type  extension length data...
 ///
-/// Mint: 82 bytes... + 83 bytes of other extension data
+/// Mint: 106 bytes... + 107 bytes of other extension data
 ///     + [2, 0, 3, 0, 100, ....]
 ///      (data in extension just happens to look like this)
 /// ```
@@ -336,7 +333,7 @@ fn type_and_tlv_indices<S: BaseState>(
 /// Checks a base buffer to verify if it is an Account without having to
 /// completely deserialize it
 fn is_initialized_account(input: &[u8]) -> Result<bool, ProgramError> {
-    const ACCOUNT_INITIALIZED_INDEX: usize = 108; // See state.rs#L99
+    const ACCOUNT_INITIALIZED_INDEX: usize = 132; // See state.rs
 
     if input.len() != BASE_ACCOUNT_LENGTH {
         return Err(ProgramError::InvalidAccountData);
@@ -773,9 +770,6 @@ pub trait BaseStateWithExtensionsMut<S: BaseState>: BaseStateWithExtensions<S> {
             return Ok(());
         }
         match extension_type {
-            ExtensionType::TransferFeeAmount => {
-                self.init_extension::<TransferFeeAmount>(true).map(|_| ())
-            }
             ExtensionType::ImmutableOwner => {
                 self.init_extension::<ImmutableOwner>(true).map(|_| ())
             }
@@ -1074,14 +1068,13 @@ pub enum AccountType {
 pub enum ExtensionType {
     /// Used as padding if the account size would otherwise be 355, same as a
     /// multisig
-    Uninitialized,
-    /// Includes transfer fee rate info and accompanying authorities to withdraw
-    /// and set the fee
-    TransferFeeConfig,
-    /// Includes withheld transfer fees
-    TransferFeeAmount,
+    Uninitialized = 0,
+    // Discriminants 1 (`TransferFeeConfig`) and 2 (`TransferFeeAmount`)
+    // belonged to the transfer fee extension, which is not supported on
+    // Jupnet. They are left unassigned so the remaining type ids keep their
+    // upstream Token-2022 values.
     /// Includes an optional mint close authority
-    MintCloseAuthority,
+    MintCloseAuthority = 3,
     /// Auditor configuration for confidential transfers
     ConfidentialTransferMint,
     /// State for confidential transfers
@@ -1189,8 +1182,6 @@ impl ExtensionType {
         }
         Ok(match self {
             ExtensionType::Uninitialized => 0,
-            ExtensionType::TransferFeeConfig => size_of::<TransferFeeConfig>(),
-            ExtensionType::TransferFeeAmount => size_of::<TransferFeeAmount>(),
             ExtensionType::MintCloseAuthority => size_of::<MintCloseAuthority>(),
             ExtensionType::ImmutableOwner => size_of::<ImmutableOwner>(),
             ExtensionType::ConfidentialTransferMint => size_of::<ConfidentialTransferMint>(),
@@ -1254,8 +1245,7 @@ impl ExtensionType {
     pub fn get_account_type(&self) -> AccountType {
         match self {
             ExtensionType::Uninitialized => AccountType::Uninitialized,
-            ExtensionType::TransferFeeConfig
-            | ExtensionType::MintCloseAuthority
+            ExtensionType::MintCloseAuthority
             | ExtensionType::ConfidentialTransferMint
             | ExtensionType::DefaultAccountState
             | ExtensionType::NonTransferable
@@ -1274,7 +1264,6 @@ impl ExtensionType {
             | ExtensionType::Pausable
             | ExtensionType::PermissionedBurn => AccountType::Mint,
             ExtensionType::ImmutableOwner
-            | ExtensionType::TransferFeeAmount
             | ExtensionType::ConfidentialTransferAccount
             | ExtensionType::MemoTransfer
             | ExtensionType::NonTransferableAccount
@@ -1295,7 +1284,6 @@ impl ExtensionType {
     /// `AccountType::Account` `ExtensionType`s required on `InitializeAccount`
     fn required_init_account_extensions(&self) -> &'static [Self] {
         match self {
-            ExtensionType::TransferFeeConfig => &[ExtensionType::TransferFeeAmount],
             ExtensionType::NonTransferable => &[
                 ExtensionType::NonTransferableAccount,
                 ExtensionType::ImmutableOwner,
@@ -1326,7 +1314,6 @@ impl ExtensionType {
     pub fn check_for_invalid_mint_extension_combinations(
         mint_extension_types: &[Self],
     ) -> Result<(), TokenError> {
-        let mut transfer_fee_config = false;
         let mut confidential_transfer_mint = false;
         let mut confidential_transfer_fee_config = false;
         let mut confidential_mint_burn = false;
@@ -1336,7 +1323,6 @@ impl ExtensionType {
 
         for extension_type in mint_extension_types {
             match extension_type {
-                ExtensionType::TransferFeeConfig => transfer_fee_config = true,
                 ExtensionType::ConfidentialTransferMint => confidential_transfer_mint = true,
                 ExtensionType::ConfidentialTransferFeeConfig => {
                     confidential_transfer_fee_config = true
@@ -1349,12 +1335,9 @@ impl ExtensionType {
             }
         }
 
-        if confidential_transfer_fee_config && !(transfer_fee_config && confidential_transfer_mint)
-        {
-            return Err(TokenError::InvalidExtensionCombination);
-        }
-
-        if transfer_fee_config && confidential_transfer_mint && !confidential_transfer_fee_config {
+        // Confidential transfer fees require the transfer fee extension, which
+        // does not exist on Jupnet.
+        if confidential_transfer_fee_config {
             return Err(TokenError::InvalidExtensionCombination);
         }
 
@@ -1400,23 +1383,21 @@ pub trait Extension {
 }
 
 /// Padding a mint account to be exactly `Multisig::LEN`.
-/// We need to pad 185 bytes, since `Multisig::LEN = 355`, `Account::LEN = 165`,
+/// We need to pad 137 bytes, since `Multisig::LEN = 355`, `Account::LEN = 213`,
 /// `size_of::<AccountType>() = 1`, `size_of::<ExtensionType>() = 2`,
 /// `size_of::<Length>() = 2`.
 ///
 /// ```
-/// assert_eq!(355 - 165 - 1 - 2 - 2, 185);
+/// assert_eq!(355 - 213 - 1 - 2 - 2, 137);
 /// ```
 #[cfg(test)]
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq, Pod, Zeroable)]
 pub struct MintPaddingTest {
-    /// Largest value under 185 that implements Pod
+    /// Largest value under 137 that implements Pod
     pub padding1: [u8; 128],
-    /// Largest value under 57 that implements Pod
-    pub padding2: [u8; 48],
     /// Exact value needed to finish the padding
-    pub padding3: [u8; 9],
+    pub padding2: [u8; 9],
 }
 #[cfg(test)]
 impl Extension for MintPaddingTest {
@@ -1427,8 +1408,7 @@ impl Default for MintPaddingTest {
     fn default() -> Self {
         Self {
             padding1: [1; 128],
-            padding2: [2; 48],
-            padding3: [3; 9],
+            padding2: [2; 9],
         }
     }
 }
@@ -1564,13 +1544,21 @@ mod test {
         },
         bytemuck::Pod,
         core::{ptr::copy_nonoverlapping, slice::from_raw_parts},
+        ethnum::U256,
         pinocchio::{account::RuntimeAccount, entrypoint::NON_DUP_MARKER},
         solana_account_info::MAX_PERMITTED_DATA_INCREASE,
         solana_address::Address,
         solana_nullable::MaybeNull,
-        solana_zero_copy::unaligned::{Bool, U64},
-        transfer_fee::test::test_transfer_fee_config,
+        solana_zero_copy::unaligned::Bool,
     };
+
+    /// Test `TransferHook` mint extension with non-default contents
+    fn test_transfer_hook() -> TransferHook {
+        TransferHook {
+            authority: Some(Address::new_from_array([10; 32])).try_into().unwrap(),
+            program_id: Some(Address::new_from_array([11; 32])).try_into().unwrap(),
+        }
+    }
 
     /// Test fixed-length struct
     #[repr(C)]
@@ -1618,21 +1606,25 @@ mod test {
 
     const MINT_WITH_ACCOUNT_TYPE: &[u8] = &[
         1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 42, 0, 0, 0, 0, 0, 0, 0, 7, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, // base mint
+        1, 1, 1, 1, 1, 1, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 7, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, // base mint
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // padding
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // padding
         1, // account type
     ];
 
     const MINT_WITH_EXTENSION: &[u8] = &[
         1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 42, 0, 0, 0, 0, 0, 0, 0, 7, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, // base mint
+        1, 1, 1, 1, 1, 1, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 7, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, // base mint
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // padding
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // padding
         1, // account type
         3, 0, // extension type
         32, 0, // length
@@ -1645,12 +1637,14 @@ mod test {
         1, 1, // mint
         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
         2, 2, // owner
-        3, 0, 0, 0, 0, 0, 0, 0, // amount
+        3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, // amount
         1, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
         4, 4, 4, 4, 4, 4, // delegate
         2, // account state
         1, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, // is native
-        6, 0, 0, 0, 0, 0, 0, 0, // delegated amount
+        6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, // delegated amount
         1, 0, 0, 0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
         7, 7, 7, 7, 7, 7, // close authority
         2, // account type
@@ -1671,7 +1665,7 @@ mod test {
             Some(Address::new_from_array([1; 32])).try_into().unwrap();
         assert_eq!(extension.close_authority, close_authority);
         assert_eq!(
-            state.get_extension::<TransferFeeConfig>(),
+            state.get_extension::<TransferHook>(),
             Err(ProgramError::InvalidAccountData)
         );
         assert_eq!(
@@ -1694,7 +1688,8 @@ mod test {
         assert_eq!(extension.transferring, transferring);
         assert_eq!(
             PodStateWithExtensions::<PodMint>::unpack(ACCOUNT_WITH_EXTENSION),
-            Err(ProgramError::InvalidAccountData)
+            // the byte at the offset of PodMint's is_initialized happens to be 0
+            Err(ProgramError::UninitializedAccount)
         );
 
         let state = PodStateWithExtensions::<PodAccount>::unpack(TEST_ACCOUNT_SLICE).unwrap();
@@ -1732,7 +1727,7 @@ mod test {
 
         // clear the mint initialized byte
         let mut buffer = MINT_WITH_EXTENSION.to_vec();
-        buffer[45] = 0;
+        buffer[69] = 0;
         assert_eq!(
             PodStateWithExtensions::<PodMint>::unpack(&buffer),
             Err(ProgramError::UninitializedAccount)
@@ -1751,7 +1746,7 @@ mod test {
         buffer[BASE_ACCOUNT_LENGTH + 1] = 2;
         let state = PodStateWithExtensions::<PodMint>::unpack(&buffer).unwrap();
         assert_eq!(
-            state.get_extension::<TransferFeeConfig>(),
+            state.get_extension::<TransferHook>(),
             Err(ProgramError::InvalidAccountData)
         );
 
@@ -1760,7 +1755,7 @@ mod test {
         buffer[BASE_ACCOUNT_LENGTH + 3] = 100;
         let state = PodStateWithExtensions::<PodMint>::unpack(&buffer).unwrap();
         assert_eq!(
-            state.get_extension::<TransferFeeConfig>(),
+            state.get_extension::<TransferHook>(),
             Err(ProgramError::InvalidAccountData)
         );
 
@@ -1769,7 +1764,7 @@ mod test {
         buffer[BASE_ACCOUNT_LENGTH + 3] = 10;
         let state = PodStateWithExtensions::<PodMint>::unpack(&buffer).unwrap();
         assert_eq!(
-            state.get_extension::<TransferFeeConfig>(),
+            state.get_extension::<TransferHook>(),
             Err(ProgramError::InvalidAccountData)
         );
 
@@ -1821,7 +1816,7 @@ mod test {
 
         // clear the state byte
         let mut buffer = ACCOUNT_WITH_EXTENSION.to_vec();
-        buffer[108] = 0;
+        buffer[132] = 0;
         assert_eq!(
             PodStateWithExtensions::<PodAccount>::unpack(&buffer),
             Err(ProgramError::UninitializedAccount)
@@ -1867,7 +1862,7 @@ mod test {
     fn get_extension_types_with_opaque_buffer() {
         // incorrect due to the length
         assert_eq!(
-            get_tlv_data_info(&[1, 0, 1, 1]).unwrap_err(),
+            get_tlv_data_info(&[3, 0, 1, 1]).unwrap_err(),
             ProgramError::InvalidAccountData,
         );
         // incorrect due to the huge enum number
@@ -1875,11 +1870,18 @@ mod test {
             get_tlv_data_info(&[0, 1, 0, 0]).unwrap_err(),
             ProgramError::InvalidAccountData,
         );
+        // incorrect due to the retired transfer fee enum numbers
+        for retired in [1u8, 2] {
+            assert_eq!(
+                get_tlv_data_info(&[retired, 0, 0, 0]).unwrap_err(),
+                ProgramError::InvalidAccountData,
+            );
+        }
         // correct due to the good enum number and zero length
         assert_eq!(
-            get_tlv_data_info(&[1, 0, 0, 0]).unwrap(),
+            get_tlv_data_info(&[3, 0, 0, 0]).unwrap(),
             TlvDataInfo {
-                extension_types: vec![ExtensionType::try_from(1).unwrap()],
+                extension_types: vec![ExtensionType::try_from(3).unwrap()],
                 used_len: add_type_and_length_to_len(0),
             }
         );
@@ -1897,7 +1899,7 @@ mod test {
     fn mint_with_extension_pack_unpack() {
         let mint_size = ExtensionType::try_calculate_account_len::<PodMint>(&[
             ExtensionType::MintCloseAuthority,
-            ExtensionType::TransferFeeConfig,
+            ExtensionType::TransferHook,
         ])
         .unwrap();
         let mut buffer = vec![0; mint_size];
@@ -1912,7 +1914,7 @@ mod test {
             PodStateWithExtensionsMut::<PodMint>::unpack_uninitialized(&mut buffer).unwrap();
         // fail init account extension
         assert_eq!(
-            state.init_extension::<TransferFeeAmount>(true),
+            state.init_extension::<TransferHookAccount>(true),
             Err(ProgramError::InvalidAccountData),
         );
 
@@ -1963,7 +1965,7 @@ mod test {
         expect.extend_from_slice(&[1; 32]); // data
         expect.extend_from_slice(&[0; size_of::<ExtensionType>()]);
         expect.extend_from_slice(&[0; size_of::<Length>()]);
-        expect.extend_from_slice(&[0; size_of::<TransferFeeConfig>()]);
+        expect.extend_from_slice(&[0; size_of::<TransferHook>()]);
         assert_eq!(expect, buffer);
 
         // unpack uninitialized will now fail because the PodMint is now initialized
@@ -1977,7 +1979,7 @@ mod test {
 
         // update base
         *state.base = TEST_POD_MINT;
-        state.base.supply = (u64::from(state.base.supply) + 100).into();
+        state.base.supply = (U256::from(state.base.supply) + 100).into();
 
         // check unpacking
         let unpacked_extension = state.get_extension_mut::<MintCloseAuthority>().unwrap();
@@ -2004,7 +2006,7 @@ mod test {
         expect.extend_from_slice(&[0; 32]);
         expect.extend_from_slice(&[0; size_of::<ExtensionType>()]);
         expect.extend_from_slice(&[0; size_of::<Length>()]);
-        expect.extend_from_slice(&[0; size_of::<TransferFeeConfig>()]);
+        expect.extend_from_slice(&[0; size_of::<TransferHook>()]);
         assert_eq!(expect, buffer);
 
         // fail unpack as an account
@@ -2015,20 +2017,15 @@ mod test {
 
         let mut state = PodStateWithExtensionsMut::<PodMint>::unpack(&mut buffer).unwrap();
         // init one more extension
-        let mint_transfer_fee = test_transfer_fee_config();
-        let new_extension = state.init_extension::<TransferFeeConfig>(true).unwrap();
-        new_extension.transfer_fee_config_authority =
-            mint_transfer_fee.transfer_fee_config_authority;
-        new_extension.withdraw_withheld_authority = mint_transfer_fee.withdraw_withheld_authority;
-        new_extension.withheld_amount = mint_transfer_fee.withheld_amount;
-        new_extension.older_transfer_fee = mint_transfer_fee.older_transfer_fee;
-        new_extension.newer_transfer_fee = mint_transfer_fee.newer_transfer_fee;
+        let mint_transfer_hook = test_transfer_hook();
+        let new_extension = state.init_extension::<TransferHook>(true).unwrap();
+        *new_extension = mint_transfer_hook;
 
         assert_eq!(
             &state.get_extension_types().unwrap(),
             &[
                 ExtensionType::MintCloseAuthority,
-                ExtensionType::TransferFeeConfig
+                ExtensionType::TransferHook
             ]
         );
 
@@ -2040,9 +2037,9 @@ mod test {
         expect.extend_from_slice(&(ExtensionType::MintCloseAuthority as u16).to_le_bytes());
         expect.extend_from_slice(&(size_of::<MintCloseAuthority>() as u16).to_le_bytes());
         expect.extend_from_slice(&[0; 32]); // data
-        expect.extend_from_slice(&(ExtensionType::TransferFeeConfig as u16).to_le_bytes());
-        expect.extend_from_slice(&(size_of::<TransferFeeConfig>() as u16).to_le_bytes());
-        expect.extend_from_slice(bytemuck::bytes_of(&mint_transfer_fee));
+        expect.extend_from_slice(&(ExtensionType::TransferHook as u16).to_le_bytes());
+        expect.extend_from_slice(&(size_of::<TransferHook>() as u16).to_le_bytes());
+        expect.extend_from_slice(bytemuck::bytes_of(&mint_transfer_hook));
         assert_eq!(expect, buffer);
 
         // fail to init one more extension that does not fit
@@ -2057,7 +2054,7 @@ mod test {
     fn mint_extension_any_order() {
         let mint_size = ExtensionType::try_calculate_account_len::<PodMint>(&[
             ExtensionType::MintCloseAuthority,
-            ExtensionType::TransferFeeConfig,
+            ExtensionType::TransferHook,
         ])
         .unwrap();
         let mut buffer = vec![0; mint_size];
@@ -2070,19 +2067,15 @@ mod test {
         let extension = state.init_extension::<MintCloseAuthority>(true).unwrap();
         extension.close_authority = close_authority;
 
-        let mint_transfer_fee = test_transfer_fee_config();
-        let extension = state.init_extension::<TransferFeeConfig>(true).unwrap();
-        extension.transfer_fee_config_authority = mint_transfer_fee.transfer_fee_config_authority;
-        extension.withdraw_withheld_authority = mint_transfer_fee.withdraw_withheld_authority;
-        extension.withheld_amount = mint_transfer_fee.withheld_amount;
-        extension.older_transfer_fee = mint_transfer_fee.older_transfer_fee;
-        extension.newer_transfer_fee = mint_transfer_fee.newer_transfer_fee;
+        let mint_transfer_hook = test_transfer_hook();
+        let extension = state.init_extension::<TransferHook>(true).unwrap();
+        *extension = mint_transfer_hook;
 
         assert_eq!(
             &state.get_extension_types().unwrap(),
             &[
                 ExtensionType::MintCloseAuthority,
-                ExtensionType::TransferFeeConfig
+                ExtensionType::TransferHook
             ]
         );
 
@@ -2101,13 +2094,9 @@ mod test {
         state.init_account_type().unwrap();
 
         // write extensions in a different order
-        let mint_transfer_fee = test_transfer_fee_config();
-        let extension = state.init_extension::<TransferFeeConfig>(true).unwrap();
-        extension.transfer_fee_config_authority = mint_transfer_fee.transfer_fee_config_authority;
-        extension.withdraw_withheld_authority = mint_transfer_fee.withdraw_withheld_authority;
-        extension.withheld_amount = mint_transfer_fee.withheld_amount;
-        extension.older_transfer_fee = mint_transfer_fee.older_transfer_fee;
-        extension.newer_transfer_fee = mint_transfer_fee.newer_transfer_fee;
+        let mint_transfer_hook = test_transfer_hook();
+        let extension = state.init_extension::<TransferHook>(true).unwrap();
+        *extension = mint_transfer_hook;
 
         let close_authority: MaybeNull<Address> =
             Some(Address::new_from_array([1; 32])).try_into().unwrap();
@@ -2117,7 +2106,7 @@ mod test {
         assert_eq!(
             &state.get_extension_types().unwrap(),
             &[
-                ExtensionType::TransferFeeConfig,
+                ExtensionType::TransferHook,
                 ExtensionType::MintCloseAuthority
             ]
         );
@@ -2129,8 +2118,8 @@ mod test {
 
         // BUT mint and extensions are the same
         assert_eq!(
-            state.get_extension::<TransferFeeConfig>().unwrap(),
-            other_state.get_extension::<TransferFeeConfig>().unwrap()
+            state.get_extension::<TransferHook>().unwrap(),
+            other_state.get_extension::<TransferHook>().unwrap()
         );
         assert_eq!(
             state.get_extension::<MintCloseAuthority>().unwrap(),
@@ -2161,8 +2150,7 @@ mod test {
         // write padding
         let extension = state.init_extension::<MintPaddingTest>(true).unwrap();
         extension.padding1 = [1; 128];
-        extension.padding2 = [1; 48];
-        extension.padding3 = [1; 9];
+        extension.padding2 = [1; 9];
 
         assert_eq!(
             &state.get_extension_types().unwrap(),
@@ -2183,7 +2171,7 @@ mod test {
     #[test]
     fn account_with_extension_pack_unpack() {
         let account_size = ExtensionType::try_calculate_account_len::<PodAccount>(&[
-            ExtensionType::TransferFeeAmount,
+            ExtensionType::TransferHookAccount,
         ])
         .unwrap();
         let mut buffer = vec![0; account_size];
@@ -2198,17 +2186,17 @@ mod test {
             PodStateWithExtensionsMut::<PodAccount>::unpack_uninitialized(&mut buffer).unwrap();
         // fail init mint extension
         assert_eq!(
-            state.init_extension::<TransferFeeConfig>(true),
+            state.init_extension::<TransferHook>(true),
             Err(ProgramError::InvalidAccountData),
         );
         // success write extension
-        let withheld_amount = U64::from(u64::MAX);
-        let extension = state.init_extension::<TransferFeeAmount>(true).unwrap();
-        extension.withheld_amount = withheld_amount;
+        let transferring = Bool::from(true);
+        let extension = state.init_extension::<TransferHookAccount>(true).unwrap();
+        extension.transferring = transferring;
 
         assert_eq!(
             &state.get_extension_types().unwrap(),
-            &[ExtensionType::TransferFeeAmount]
+            &[ExtensionType::TransferHookAccount]
         );
 
         // fail unpack again, still no base data
@@ -2227,9 +2215,9 @@ mod test {
         // check raw buffer
         let mut expect = TEST_ACCOUNT_SLICE.to_vec();
         expect.push(AccountType::Account.into());
-        expect.extend_from_slice(&(ExtensionType::TransferFeeAmount as u16).to_le_bytes());
-        expect.extend_from_slice(&(size_of::<TransferFeeAmount>() as u16).to_le_bytes());
-        expect.extend_from_slice(&u64::from(withheld_amount).to_le_bytes());
+        expect.extend_from_slice(&(ExtensionType::TransferHookAccount as u16).to_le_bytes());
+        expect.extend_from_slice(&(size_of::<TransferHookAccount>() as u16).to_le_bytes());
+        expect.extend_from_slice(bytemuck::bytes_of(&transferring));
         assert_eq!(expect, buffer);
 
         // check unpacking
@@ -2237,41 +2225,42 @@ mod test {
         assert_eq!(state.base, &base);
         assert_eq!(
             &state.get_extension_types().unwrap(),
-            &[ExtensionType::TransferFeeAmount]
+            &[ExtensionType::TransferHookAccount]
         );
 
         // update base
         *state.base = TEST_POD_ACCOUNT;
-        state.base.amount = (u64::from(state.base.amount) + 100).into();
+        state.base.amount = (U256::from(state.base.amount) + 100).into();
 
         // check unpacking
-        let unpacked_extension = state.get_extension_mut::<TransferFeeAmount>().unwrap();
-        assert_eq!(*unpacked_extension, TransferFeeAmount { withheld_amount });
+        let unpacked_extension = state.get_extension_mut::<TransferHookAccount>().unwrap();
+        assert_eq!(*unpacked_extension, TransferHookAccount { transferring });
 
         // update extension
-        let withheld_amount = U64::from(u32::MAX as u64);
-        unpacked_extension.withheld_amount = withheld_amount;
+        let transferring = Bool::from(false);
+        unpacked_extension.transferring = transferring;
 
         // check updates are propagated
         let base = *state.base;
         let state = PodStateWithExtensions::<PodAccount>::unpack(&buffer).unwrap();
         assert_eq!(state.base, &base);
-        let unpacked_extension = state.get_extension::<TransferFeeAmount>().unwrap();
-        assert_eq!(*unpacked_extension, TransferFeeAmount { withheld_amount });
+        let unpacked_extension = state.get_extension::<TransferHookAccount>().unwrap();
+        assert_eq!(*unpacked_extension, TransferHookAccount { transferring });
 
         // check raw buffer
         let mut expect = vec![];
         expect.extend_from_slice(bytemuck::bytes_of(&base));
         expect.push(AccountType::Account.into());
-        expect.extend_from_slice(&(ExtensionType::TransferFeeAmount as u16).to_le_bytes());
-        expect.extend_from_slice(&(size_of::<TransferFeeAmount>() as u16).to_le_bytes());
-        expect.extend_from_slice(&u64::from(withheld_amount).to_le_bytes());
+        expect.extend_from_slice(&(ExtensionType::TransferHookAccount as u16).to_le_bytes());
+        expect.extend_from_slice(&(size_of::<TransferHookAccount>() as u16).to_le_bytes());
+        expect.extend_from_slice(bytemuck::bytes_of(&transferring));
         assert_eq!(expect, buffer);
 
         // fail unpack as a mint
         assert_eq!(
             PodStateWithExtensions::<PodMint>::unpack(&buffer),
-            Err(ProgramError::InvalidAccountData),
+            // the byte at the offset of PodMint's is_initialized happens to be 0
+            Err(ProgramError::UninitializedAccount),
         );
     }
 
@@ -2298,8 +2287,7 @@ mod test {
         // write padding
         let extension = state.init_extension::<AccountPaddingTest>(true).unwrap();
         extension.0.padding1 = [2; 128];
-        extension.0.padding2 = [2; 48];
-        extension.0.padding3 = [2; 9];
+        extension.0.padding2 = [2; 9];
 
         assert_eq!(
             &state.get_extension_types().unwrap(),
@@ -2442,37 +2430,31 @@ mod test {
 
         // One mint extension with required account extension, one without
         let mint_extensions = vec![
-            ExtensionType::TransferFeeConfig,
+            ExtensionType::TransferHook,
             ExtensionType::MintCloseAuthority,
         ];
         assert_eq!(
             ExtensionType::get_required_init_account_extensions(&mint_extensions),
-            vec![ExtensionType::TransferFeeAmount]
+            vec![ExtensionType::TransferHookAccount]
         );
 
         // Some mint extensions both with required account extensions
-        let mint_extensions = vec![
-            ExtensionType::TransferFeeConfig,
-            ExtensionType::MintPaddingTest,
-        ];
+        let mint_extensions = vec![ExtensionType::TransferHook, ExtensionType::MintPaddingTest];
         assert_eq!(
             ExtensionType::get_required_init_account_extensions(&mint_extensions),
             vec![
-                ExtensionType::TransferFeeAmount,
+                ExtensionType::TransferHookAccount,
                 ExtensionType::AccountPaddingTest
             ]
         );
 
         // Demonstrate that method does not dedupe inputs or outputs
-        let mint_extensions = vec![
-            ExtensionType::TransferFeeConfig,
-            ExtensionType::TransferFeeConfig,
-        ];
+        let mint_extensions = vec![ExtensionType::TransferHook, ExtensionType::TransferHook];
         assert_eq!(
             ExtensionType::get_required_init_account_extensions(&mint_extensions),
             vec![
-                ExtensionType::TransferFeeAmount,
-                ExtensionType::TransferFeeAmount
+                ExtensionType::TransferHookAccount,
+                ExtensionType::TransferHookAccount
             ]
         );
     }
@@ -2494,7 +2476,7 @@ mod test {
 
         // fail init extension
         assert_eq!(
-            state.init_extension::<TransferFeeConfig>(true),
+            state.init_extension::<TransferHook>(true),
             Err(ProgramError::InvalidAccountData),
         );
 
@@ -2513,8 +2495,7 @@ mod test {
         state.init_account_type().unwrap();
         let extension = state.init_extension::<MintPaddingTest>(true).unwrap();
         assert_eq!(extension.padding1, [1; 128]);
-        assert_eq!(extension.padding2, [2; 48]);
-        assert_eq!(extension.padding3, [3; 9]);
+        assert_eq!(extension.padding2, [2; 9]);
     }
 
     #[test]
@@ -2595,7 +2576,7 @@ mod test {
             ExtensionType::try_calculate_account_len::<PodMint>(&[
                 ExtensionType::MintCloseAuthority,
                 ExtensionType::VariableLenMintTest,
-                ExtensionType::TransferFeeConfig,
+                ExtensionType::TransferHook,
             ])
             .unwrap_err(),
             ProgramError::InvalidArgument
